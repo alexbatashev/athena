@@ -39,6 +39,20 @@ TEST(GraphSimpleTest, Creation) {
   Context context;
   Graph graph(context);
 }
+TEST_F(GraphTest, CreateNode) {
+  auto inpNodeId1 = graph.create<InputNode>(TensorShape{1}, DataType::FLOAT,
+                                           loader, context, false, "Input1");
+  auto inpNodeId2 = graph.create<InputNode>(TensorShape{1}, DataType::FLOAT,
+                                             loader, context, false, "Input2");
+
+  auto action = graph.create<Node>(operation, context, "DummyNode");
+  EXPECT_EQ(inpNodeId1, 1);
+  EXPECT_EQ(inpNodeId2, 2);
+  EXPECT_EQ(action, 3);
+
+  graph.connect(inpNodeId1, action, 1);
+  graph.connect(inpNodeId2, action, 2);
+}
 TEST_F(GraphTest, Using) {
   InputNode inputNodeFirst({1}, DataType::HALF, loader, context, false,
                            "Input1");

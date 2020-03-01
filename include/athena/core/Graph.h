@@ -84,6 +84,64 @@ public:
   const SyncStorage& getSyncStorage() const;
   const OwningStorage& getOwningStorage() const;
   const Topology& getTopology() const;
+
+  /// Creates a node inside a Graph.
+  ///
+  /// \tparam NodeT is a type of node to be created.
+  /// \tparam Args is a type of node constructor arguments.
+  /// \param args are constructor arguments.
+  /// \return an identifier of a node inside the Context.
+  template <typename NodeT, typename... Args> size_t create(Args&&... args) {
+    std::get<std::vector<NodeT>>(mOwningStorage)
+        .emplace_back(std::forward<Args&&>(args)...);
+    auto node = std::get<std::vector<NodeT>>(mOwningStorage).back();
+    inner::setGraphIndex(node, mGraphIndex);
+    return node.getNodeIndex();
+  }
+
+  template <typename NodeT>
+  std::optional<NodeT&> lookup(const std::string& nodeName) {
+    auto storage = std::get<std::vector<NodeT>>(mOwningStorage);
+    auto it =
+        std::find_if(storage.begin(), storage.end(), [&](const NodeT& node) {
+          return node.getName() == nodeName;
+        });
+    if (it != storage.end()) {
+      return std::optional<NodeT&>(*it);
+    }
+    return std::nullopt;
+  }
+
+  template <typename NodeT>
+  std::optional<std::reference_wrapper<NodeT>> lookup(const size_t nodeId) {
+    auto storage = std::get<std::vector<NodeT>>(mOwningStorage);
+    auto it =
+        std::find_if(storage.begin(), storage.end(), [&](const NodeT& node) {
+          return node.getNodeIndex() == nodeId;
+        });
+    if (it != storage.end()) {
+      return std::optional<std::reference_wrapper<NodeT>>(*it);
+    }
+    return std::nullopt;
+  }
+
+  AbstractNode& lookup(const size_t nodeId) {
+    // fixme remove node table for good, replace with typed lookup.
+    return *inner::getNodeTable(*mContext)[nodeId];
+  }
+
+  void connect(const AbstractNode& from, const AbstractNode& to,
+               EdgeMark mark) {
+    // todo replace link with connect
+    link(from, to, mark);
+  }
+
+  void connect(size_t fromNodeId, size_t toNodeId, EdgeMark mark) {
+    auto& from = lookup(fromNodeId);
+    auto& to = lookup(toNodeId);
+    connect(from, to, mark);
+  }
+
   /**
    * Add node to Graph
    * @param node A node to be added
@@ -148,6 +206,10 @@ public:
    * @return Current graph name
    */
   std::string getGraphName() { return mGraphName; };
+
+  /// Constructs a new Graph that computes gradient of this Graph.
+  // std::pair<Graph, std::vector<size_t>> gradient(const AbstractNode&
+  // startNode);
 };
 } // namespace athena::core
 

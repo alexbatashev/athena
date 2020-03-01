@@ -21,6 +21,7 @@
 
 #include <algorithm>
 #include <queue>
+#include <utility>
 
 namespace athena::core {
 template <typename TemplateNodeType>
@@ -322,6 +323,9 @@ void Graph::setUpTensors() const {
     }
   }
 }
+
+//std::pair<Graph, std::vector<size_t>>
+// Graph::gradient(const AbstractNode& startNode) {}
 } // namespace athena::core
 
 namespace athena::core::inner {
