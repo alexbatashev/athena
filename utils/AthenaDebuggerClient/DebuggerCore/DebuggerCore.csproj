@@ -7,8 +7,11 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <PackageReference Include="AutomaticGraphLayout" Version="1.1.6" />
+        <PackageReference Include="AutomaticGraphLayout.Drawing" Version="1.1.6" />
         <PackageReference Include="Google.Protobuf" Version="3.11.4" />
         <PackageReference Include="Grpc.Tools" Version="2.28.0-pre3" PrivateAssets="All" />
+        <PackageReference Include="Svg" Version="3.0.102" />
     </ItemGroup>
 
     <ItemGroup>

@@ -1,14 +1,19 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using ProtoGraph;
+using Microsoft.Msagl.Core.Geometry.Curves;
+using Microsoft.Msagl.Core.Layout;
+using Microsoft.Msagl.Core.Routing;
+using Microsoft.Msagl.Layout.Layered;
+using Edge = Microsoft.Msagl.Core.Layout.Edge;
+using DrawingNode = Microsoft.Msagl.Core.Layout.Node;
 
 namespace DebuggerCore
 {
     /// <summary>
     /// Helper class to generate nodes layout before drawing.
     /// </summary> 
-    public class LayoutGenerator
+    public class GraphLayoutGenerator
     {
         private const int FontSize = 13;
         private const int SidePadding = 16;
@@ -17,189 +22,65 @@ namespace DebuggerCore
         private const int HorizontalNodeSpace = 20;
         private const int VerticalNodeSpace = 40;
 
-        private class NodeHolder
+        private static GeometryGraph ConvertGraph(Graph graph)
         {
-            private ProtoGraph.Node Node;
-            private ProtoGraph.InputNode InputNode;
-            private ProtoGraph.LossNode LossNode;
-            private ProtoGraph.OutputNode OutputNode;
+            var drawableGraph = new GeometryGraph();
+            var nodesCache = new Dictionary<ulong, DrawingNode>();
 
-            private enum NodeType
+            AddNodeToDrawableGraph(graph, nodesCache, drawableGraph);
+
+            foreach (var graphNode in graph.Nodes)
             {
-                Node,
-                Input,
-                Loss,
-                Output
+                var newNode = new DrawingNode {UserData = graphNode.Index};
+                nodesCache.Add(graphNode.Index, newNode);
+                drawableGraph.Nodes.Add(newNode);
             }
 
-            private readonly NodeType ContainedNodeType;
-
-            public NodeHolder(ProtoGraph.Node node)
+            foreach (var lossNode in graph.LossNodes)
             {
-                Node = node;
-                ContainedNodeType = NodeType.Node;
+                var newNode = new DrawingNode {UserData = lossNode.Index};
+                nodesCache.Add(lossNode.Index, newNode);
+                drawableGraph.Nodes.Add(newNode);
             }
 
-            public NodeHolder(ProtoGraph.InputNode node)
+            foreach (var outputNode in graph.OutputNodes)
             {
-                InputNode = node;
-                ContainedNodeType = NodeType.Input;
+                var newNode = new DrawingNode {UserData = outputNode.Index};
+                nodesCache.Add(outputNode.Index, newNode);
+                drawableGraph.Nodes.Add(newNode);
             }
 
-            public NodeHolder(ProtoGraph.LossNode node)
+            foreach (var graphEdge in graph.Edges)
             {
-                LossNode = node;
-                ContainedNodeType = NodeType.Loss;
+                var newEdge = new Edge(nodesCache[graphEdge.Start], nodesCache[graphEdge.End]);
+                drawableGraph.Edges.Add(newEdge);
             }
 
-            public NodeHolder(ProtoGraph.OutputNode node)
-            {
-                OutputNode = node;
-                ContainedNodeType = NodeType.Output;
-            }
+            return drawableGraph;
+        }
 
-            public string GetName()
+        private static void AddNodeToDrawableGraph(Graph graph, IDictionary<ulong, DrawingNode> nodesCache,
+            GeometryGraph drawableGraph)
+        {
+            foreach (var inputNode in graph.InputNodes)
             {
-                return ContainedNodeType switch
-                {
-                    NodeType.Input => InputNode.Name,
-                    NodeType.Node => Node.Name,
-                    NodeType.Loss => LossNode.Name,
-                    NodeType.Output => OutputNode.Name,
-                    _ => throw new ArgumentOutOfRangeException()
-                };
-            }
-
-            public ulong GetId()
-            {
-                return ContainedNodeType switch
-                {
-                    NodeType.Input => InputNode.Index,
-                    NodeType.Node => Node.Index,
-                    NodeType.Loss => LossNode.Index,
-                    NodeType.Output => OutputNode.Index,
-                    _ => throw new ArgumentOutOfRangeException()
-                };
+                var newNode = new DrawingNode {UserData = inputNode.Index};
+                nodesCache.Add(inputNode.Index, newNode);
+                drawableGraph.Nodes.Add(newNode);
             }
         }
 
-        private static Dictionary<ulong, List<ulong>> CreateStartEdgeIndex(Graph graph)
+        public static GeometryGraph Generate(Graph graph)
         {
-            var index = new Dictionary<ulong, List<ulong>>();
-            foreach (var edge in graph.Edges)
-            {
-                index[edge.Start].Add(edge.End);
-            }
+            var drawableGraph = ConvertGraph(graph);
 
-            return index;
-        }
-
-        private static Dictionary<ulong, List<ulong>> CreateEndEdgeIndex(Graph graph)
-        {
-            var index = new Dictionary<ulong, List<ulong>>();
-            foreach (var edge in graph.Edges)
-            {
-                index[edge.End].Add(edge.Start);
-            }
-
-            return index;
-        }
-
-        private static List<NodeHolder> GetAllNodes(Graph graph)
-        {
-            var result = graph.Nodes.Select(node => new NodeHolder(node)).ToList();
-            result.AddRange(graph.InputNodes.Select(node => new NodeHolder(node)));
-            result.AddRange(graph.LossNodes.Select(node => new NodeHolder(node)));
-            result.AddRange(graph.OutputNodes.Select(node => new NodeHolder(node)));
-
-            return result;
-        }
-
-        public DrawableGraph Generate(Graph graph)
-        {
-            var clusters = new List<List<NodeHolder>>();
-
-            var startIndex = CreateStartEdgeIndex(graph);
-            var endIndex = CreateEndEdgeIndex(graph);
-            var allNodes = GetAllNodes(graph);
-
-            var toWatch = new Queue<NodeHolder>();
-            var inputsCount = new Dictionary<ulong, ulong>();
-            var clusterPlacement = new Dictionary<ulong, int>();
-
-            foreach (var node in allNodes.Where(node => !startIndex.ContainsKey(node.GetId())))
-            {
-                toWatch.Append(node);
-                inputsCount[node.GetId()] = 0;
-                clusterPlacement[node.GetId()] = 0;
-            }
-
-            while (toWatch.Count > 0)
-            {
-                var node = toWatch.Dequeue();
-                if (clusters.Count <= (int) inputsCount[node.GetId()])
-                {
-                    clusters.Add(new List<NodeHolder>());
-                }
-
-                clusters[clusterPlacement[node.GetId()]].Add(node);
-
-                // traverse all children
-                foreach (var child in allNodes.Where(curNode => startIndex[node.GetId()].Contains(curNode.GetId())))
-                {
-                    if (inputsCount.ContainsKey(child.GetId()))
-                    {
-                        inputsCount[child.GetId()] += 1;
-                    }
-                    else
-                    {
-                        inputsCount[child.GetId()] = 1;
-                    }
-
-                    if (inputsCount[child.GetId()] != (ulong) endIndex[child.GetId()].Count) continue;
-                    toWatch.Append(child);
-                    clusterPlacement[child.GetId()] = clusterPlacement[node.GetId()] + 1;
-                }
-            }
-
-            var drawableGraph = new DrawableGraph();
-
-            var lastX = 0;
-            var lastY = 0;
-            var isFirstCluster = true;
-            var nodesCache = new Dictionary<ulong, DrawableNode>();
-
-            foreach (var cluster in clusters)
-            {
-                foreach (var nodeHolder in cluster)
-                {
-                    lastX += HorizontalNodeSpace;
-
-                    var width = nodeHolder.GetName().Length * FontSize + 2 * SidePadding;
-                    const int height = 2 * FontSize + 2 * TopPadding;
-
-                    var node = new DrawableNode(nodeHolder.GetName(), "", nodeHolder.GetId(), lastX, lastY, width,
-                        height);
-                    nodesCache[nodeHolder.GetId()] = node;
-
-                    if (isFirstCluster)
-                    {
-                        drawableGraph.AddFirstLevelNode(node);
-                    }
-                    else
-                    {
-                        foreach (var parentIdx in endIndex[nodeHolder.GetId()])
-                        {
-                            nodesCache[parentIdx].AddChild(node);
-                        }
-                    }
-
-                    lastX += width;
-                }
-
-                lastY += 2 * LineHeight + 2 * TopPadding + VerticalNodeSpace;
-                isFirstCluster = false;
-            }
+            var settings = new SugiyamaLayoutSettings {
+                Transformation = PlaneTransformation.Rotation(Math.PI/2),
+                EdgeRoutingSettings = {EdgeRoutingMode = EdgeRoutingMode.Spline}
+            };
+            
+            var layout = new LayeredLayout(drawableGraph, settings);
+            layout.Run();
 
             return drawableGraph;
         }
