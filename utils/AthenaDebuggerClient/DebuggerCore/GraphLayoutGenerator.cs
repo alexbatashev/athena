@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Microsoft.Msagl.Core.Geometry;
 using ProtoGraph;
 using Microsoft.Msagl.Core.Geometry.Curves;
 using Microsoft.Msagl.Core.Layout;
@@ -22,32 +23,56 @@ namespace DebuggerCore
         private const int HorizontalNodeSpace = 20;
         private const int VerticalNodeSpace = 40;
 
+        private static int CalculateWidth(int charCount)
+        {
+            return SidePadding * 2 + FontSize * charCount;
+        }
+
+        private static int CalculateHeight()
+        {
+            return TopPadding * 2 + FontSize;
+        }
+
         private static GeometryGraph ConvertGraph(Graph graph)
         {
             var drawableGraph = new GeometryGraph();
             var nodesCache = new Dictionary<ulong, DrawingNode>();
 
-            AddNodeToDrawableGraph(graph, nodesCache, drawableGraph);
-
             foreach (var graphNode in graph.Nodes)
             {
-                var newNode = new DrawingNode {UserData = graphNode.Index};
+                var newNode = new DrawingNode(
+                    CurveFactory.CreateRectangle(40, 10, new Point()),
+                    graphNode.Index);
                 nodesCache.Add(graphNode.Index, newNode);
                 drawableGraph.Nodes.Add(newNode);
             }
 
             foreach (var lossNode in graph.LossNodes)
             {
-                var newNode = new DrawingNode {UserData = lossNode.Index};
+                var newNode = new DrawingNode(
+                    CurveFactory.CreateRectangle(40, 10, new Point()),
+                    lossNode.Index);
                 nodesCache.Add(lossNode.Index, newNode);
                 drawableGraph.Nodes.Add(newNode);
             }
 
             foreach (var outputNode in graph.OutputNodes)
             {
-                var newNode = new DrawingNode {UserData = outputNode.Index};
+                var newNode = new DrawingNode(
+                    CurveFactory.CreateRectangle(40, 10, new Point()),
+                    outputNode.Index);
                 nodesCache.Add(outputNode.Index, newNode);
                 drawableGraph.Nodes.Add(newNode);
+            }
+
+            foreach (var inputNode in graph.InputNodes)
+            {
+                var newNode = new DrawingNode(
+                    CurveFactory.CreateRectangle(40, 10, new Point()),
+                    inputNode.Index);
+                nodesCache.Add(inputNode.Index, newNode);
+                drawableGraph.Nodes.Add(newNode);
+                
             }
 
             foreach (var graphEdge in graph.Edges)
@@ -58,27 +83,17 @@ namespace DebuggerCore
 
             return drawableGraph;
         }
-
-        private static void AddNodeToDrawableGraph(Graph graph, IDictionary<ulong, DrawingNode> nodesCache,
-            GeometryGraph drawableGraph)
-        {
-            foreach (var inputNode in graph.InputNodes)
-            {
-                var newNode = new DrawingNode {UserData = inputNode.Index};
-                nodesCache.Add(inputNode.Index, newNode);
-                drawableGraph.Nodes.Add(newNode);
-            }
-        }
-
+        
         public static GeometryGraph Generate(Graph graph)
         {
             var drawableGraph = ConvertGraph(graph);
 
-            var settings = new SugiyamaLayoutSettings {
-                Transformation = PlaneTransformation.Rotation(Math.PI/2),
+            var settings = new SugiyamaLayoutSettings
+            {
+                
                 EdgeRoutingSettings = {EdgeRoutingMode = EdgeRoutingMode.Spline}
             };
-            
+
             var layout = new LayeredLayout(drawableGraph, settings);
             layout.Run();
 

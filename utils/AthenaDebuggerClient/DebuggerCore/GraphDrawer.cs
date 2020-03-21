@@ -5,49 +5,40 @@ using Rectangle = Microsoft.Msagl.Core.Geometry.Rectangle;
 
 namespace DebuggerCore
 {
-    public class GraphDrawer<SystemDrawer> where SystemDrawer : ISystemDrawer
+    public class GraphDrawer<TSystemDrawer> where TSystemDrawer : ISystemDrawer
     {
-        private SystemDrawer _drawer;
+        private TSystemDrawer _drawer;
 
-        public GraphDrawer(SystemDrawer drawer)
+        public GraphDrawer(TSystemDrawer drawer)
         {
             _drawer = drawer;
         }
-        
-        public string RenderGraph(Graph graph)
+
+        public void RenderGraph(Graph graph)
         {
-            var svgDoc = new SvgDocument();
             var drawableGraph = GraphLayoutGenerator.Generate(graph);
 
-            svgDoc.Width = (SvgUnit) drawableGraph.Width;
-            svgDoc.Height = (SvgUnit) drawableGraph.Height;
+            //_drawer.Scale(drawableGraph.Width, drawableGraph.Height);
 
             foreach (var node in drawableGraph.Nodes)
             {
-                var rectangle = new SvgRectangle
-                {
-                    Width = (SvgUnit) node.Width,
-                    Height = (SvgUnit) node.Height,
-                    X = (SvgUnit) node.BoundingBox.Left,
-                    Y = (SvgUnit) node.BoundingBox.Top
-                };
-
-                svgDoc.Children.Add(rectangle);
+                _drawer.Rectangle(node.UserData is ulong data ? data : 0, node.BoundingBox.Left, node.BoundingBox.Top,
+                    node.Width, node.Height);
             }
 
             foreach (var edge in drawableGraph.Edges)
             {
-                var line = new SvgLine
+                if (!(edge.Curve is Curve c)) continue;
+                foreach (var segment in c.Segments)
                 {
-                    StartX = (SvgUnit) edge.Curve.Start.X,
-                    StartY = (SvgUnit) edge.Curve.Start.Y,
-                    EndX = (SvgUnit) edge.Curve.End.X,
-                    EndY = (SvgUnit) edge.Curve.End.Y
-                };
-                svgDoc.Children.Add(line);
+                    if (segment is CubicBezierSegment bezierSegment)
+                    {
+                        _drawer.Bezier(bezierSegment.B(0).X, bezierSegment.B(1).Y, bezierSegment.B(1).X,
+                            bezierSegment.B(1).Y, bezierSegment.B(2).X, bezierSegment.B(2).Y, bezierSegment.B(3).X,
+                            bezierSegment.B(3).Y);
+                    }
+                }
             }
-            
-            return "";
-        } 
+        }
     }
 }

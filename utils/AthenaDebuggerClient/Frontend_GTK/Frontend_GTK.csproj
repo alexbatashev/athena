@@ -6,14 +6,18 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <None Remove="**\*.glade"/>
+        <None Remove="**\*.glade" />
         <EmbeddedResource Include="**\*.glade">
             <LogicalName>%(Filename)%(Extension)</LogicalName>
         </EmbeddedResource>
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="GtkSharp" Version="3.22.25.*"/>
+        <PackageReference Include="GtkSharp" Version="3.22.25.*" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\DebuggerCore\DebuggerCore.csproj" />
     </ItemGroup>
 
 </Project>
