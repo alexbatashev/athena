@@ -15,11 +15,14 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    container: athenaml/build:llvm10 
+    container: 
+      image: athenaml/build:llvm10
+      volumes:
+        - ${{ github.workspace }}:${{ github.workspace }}
     strategy:
       matrix:
         build_type: ["Release", "Debug"]
-        compiler: [["clang", "clang++"]]
+        compiler: [ ["clang", "clang++"] ]
 
     steps:
       - uses: actions/checkout@v2
@@ -31,17 +34,17 @@ jobs:
           mkdir -p build_${{ matrix.build_type }}
           mkdir -p install_${{ matrix.build_type }}
           ./scripts/build.py \
-          --install-dir="`pwd`/install_${{ matrix.build_type }}" \
+          --install-dir="${{ github.workspace }}/install_${{ matrix.build_type }}" \
           --build-type="${{ matrix.build_type }}" --ninja \
-          `pwd`/build_${{ matrix.build_type }} \
-          `pwd`
+          ${{ github.workspace }}/build_${{ matrix.build_type }} \
+          ${{ github.workspace }}
       - name: Build
         run: |
           cmake --build build_${{ matrix.build_type }} --target install
       - name: Test
         env:
           ATHENA_TEST_ENVIRONMENT: "ci"
+          ATHENA_BINARY_DIR: ${{ github.workspace }}/install_${{ matrix.build_type }}
         run: |
-          export ATHENA_BINARY_DIR=`pwd`/install_${{ matrix.build_type }}
           cd build_${{ matrix.build_type }}
           ctest -VV -T Test
