@@ -42,6 +42,4 @@ jobs:
         env:
           ATHENA_TEST_ENVIRONMENT: "ci"
         run: |
-          cd build_${{ matrix.build }}
-          ctest -VV -T Test
-          
+          cmake --build build_${{ matrix.build_type }} -- ARGS="-VV -T Test"
