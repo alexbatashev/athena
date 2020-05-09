@@ -30,8 +30,9 @@ jobs:
         run: |
           mkdir -p build_${{ matrix.build_type }}
           mkdir -p install_${{ matrix.build_type }}
-          ./scripts/build.py --install_dir="$GITHUB_WORKSPACE"/install_${{ matrix.build_type }} \
-            --build_type=${{ matrix.build_type }} "$GITHUB_WORKSPACE" --ninja
+          ./scripts/build.py \
+          --install_dir=${{ github.workspace }}/install_${{ matrix.build_type }} \
+          --build_type=${{ matrix.build_type }} --ninja ${{ github.workspace }}
       - name: Build
         run: |
           cmake --build build_${{ matrix.build_type }} --target install
