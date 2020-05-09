@@ -42,5 +42,6 @@ jobs:
         env:
           ATHENA_TEST_ENVIRONMENT: "ci"
         run: |
+          export ATHENA_BINARY_DIR=`pwd`/install_${{ matrix.build_type }}
           cd build_${{ matrix.build_type }}
           ctest -VV -T Test
