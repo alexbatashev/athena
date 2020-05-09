@@ -31,8 +31,8 @@ jobs:
           mkdir -p build_${{ matrix.build_type }}
           mkdir -p install_${{ matrix.build_type }}
           ./scripts/build.py \
-          --install_dir=${{ github.workspace }}/install_${{ matrix.build_type }} \
-          --build_type=${{ matrix.build_type }} --ninja \
+          --install_dir "${{ github.workspace }}/install_${{ matrix.build_type }}" \
+          --build_type "${{ matrix.build_type }}" --ninja \
           ${{ github.workspace }}/build_${{ matrix.build_type }} \
           ${{ github.workspace }}
       - name: Build

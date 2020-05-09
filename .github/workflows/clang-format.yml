@@ -12,7 +12,7 @@ jobs:
         run: sudo apt-get install -yqq clang-format-9
       - name: Run clang-format
         run: |
-          git clang-format-9 ${{ github.base_ref }}
+          git clang-format-9 origin/${{ github.base_ref }}
           git diff > clang-fromat.diff
       - uses: actions/upload-artifact@v1
         with:
