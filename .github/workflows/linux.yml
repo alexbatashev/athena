@@ -26,10 +26,11 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-      - name: Configure
+      - name: Build
         env:
           CC: ${{ matrix.compiler[0] }}
           CXX: ${{ matrix.compiler[1] }}
+          ATHENA_BINARY_DIR: ${{ github.workspace }}/install_${{ matrix.build_type }}
         run: |
           mkdir -p build_${{ matrix.build_type }}
           mkdir -p install_${{ matrix.build_type }}
@@ -38,7 +39,7 @@ jobs:
           --build-type="${{ matrix.build_type }}" --ninja \
           ${{ github.workspace }}/build_${{ matrix.build_type }} \
           ${{ github.workspace }}
-      - name: Build
+      - name: Install
         run: |
           cmake --build build_${{ matrix.build_type }} --target install
       - name: Test
