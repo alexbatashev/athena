@@ -21,6 +21,6 @@ jobs:
           name: clang-format
           path: ./clang-format.diff
       - name: Check if clang-format is empty
-          run: bash -c "if [ -s ./clang-format.diff ]; then cat ./clang-format.diff; exit 1; fi"
+        run: bash -c "if [ -s ./clang-format.diff ]; then cat ./clang-format.diff; exit 1; fi"
 
   
