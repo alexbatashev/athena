@@ -14,6 +14,7 @@ jobs:
         run: |
           git clang-format-9 origin/${{ github.base_ref }}
           git diff > clang-fromat.diff
+          touch clang-format.diff
       - uses: actions/upload-artifact@v1
         with:
           name: clang-format
