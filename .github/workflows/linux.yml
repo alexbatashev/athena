@@ -28,22 +28,20 @@ jobs:
           CC: ${{ matrix.compiler[0] }}
           CXX: ${{ matrix.compiler[1] }}
         run: |
-          cd ${{ github.workspace }}
           mkdir -p build_${{ matrix.build_type }}
           mkdir -p install_${{ matrix.build_type }}
           ./scripts/build.py \
-          --install-dir="${{ github.workspace }}/install_${{ matrix.build_type }}" \
+          --install-dir="`pwd`/install_${{ matrix.build_type }}" \
           --build-type="${{ matrix.build_type }}" --ninja \
-          ${{ github.workspace }}/build_${{ matrix.build_type }} \
-          ${{ github.workspace }}
+          `pwd`/build_${{ matrix.build_type }} \
+          `pwd`
       - name: Build
         run: |
-          cd ${{ github.workspace }}
           cmake --build build_${{ matrix.build_type }} --target install
       - name: Test
         env:
           ATHENA_TEST_ENVIRONMENT: "ci"
         run: |
-          cd ${{ github.workspace }}/build_${{ matrix.build }}
+          cd build_${{ matrix.build }}
           ctest -VV -T Test
           
