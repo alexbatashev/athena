@@ -19,6 +19,10 @@
 #include "llvm/Support/InitLLVM.h"
 #include "llvm/Support/TargetSelect.h"
 #include "llvm/Support/raw_ostream.h"
+#include "llvm/ExecutionEngine/Orc/RTDyldObjectLinkingLayer.h"
+#include "llvm/ExecutionEngine/SectionMemoryManager.h"
+#include "llvm/ExecutionEngine/JITEventListener.h"
+#include "llvm/ExecutionEngine/JITLink/JITLinkMemoryManager.h"
 
 using namespace ::llvm;
 using namespace ::llvm::orc;
@@ -30,13 +34,40 @@ AthenaJIT::AthenaJIT(std::unique_ptr<::llvm::orc::LLJIT> jit)
     : mJITInstance(std::move(jit)), mMlirPassManager(&mContext) {
   setupMlirPassManager();
 };
+
 auto AthenaJIT::create() -> std::shared_ptr<AthenaJIT> {
   ::llvm::sys::DynamicLibrary::LoadLibraryPermanently(nullptr);
   auto JIT = ExitOnErr(LLJITBuilder().create());
   JIT->getMainJITDylib().addGenerator(
-      ::llvm::cantFail(
-          ::llvm::orc::DynamicLibrarySearchGenerator::GetForCurrentProcess(
-              JIT->getDataLayout().getGlobalPrefix())));
+      cantFail(DynamicLibrarySearchGenerator::GetForCurrentProcess(
+          JIT->getDataLayout().getGlobalPrefix())));
+
+  return std::make_shared<AthenaJIT>(std::move(JIT));
+}
+
+auto AthenaJIT::createWithDebugging() -> std::shared_ptr<AthenaJIT> {
+  ::llvm::sys::DynamicLibrary::LoadLibraryPermanently(nullptr);
+  auto objectLinkingLayerCreator = [](ExecutionSession& ES, const Triple& TT) {
+    auto GetMemMgr = []() { return std::make_unique<SectionMemoryManager>(); };
+    auto ObjLinkingLayer =
+        std::make_unique<RTDyldObjectLinkingLayer>(ES, std::move(GetMemMgr));
+
+    // Register the event listener.
+    ObjLinkingLayer->registerJITEventListener(
+        *JITEventListener::createGDBRegistrationListener());
+
+    // Make sure the debug info sections aren't stripped.
+    ObjLinkingLayer->setProcessAllSections(true);
+
+    return ObjLinkingLayer;
+  };
+  auto JIT =
+      ExitOnErr(LLJITBuilder()
+                    .setObjectLinkingLayerCreator(objectLinkingLayerCreator)
+                    .create());
+  JIT->getMainJITDylib().addGenerator(::llvm::cantFail(
+      ::llvm::orc::DynamicLibrarySearchGenerator::GetForCurrentProcess(
+          JIT->getDataLayout().getGlobalPrefix())));
 
   return std::make_shared<AthenaJIT>(std::move(JIT));
 }
@@ -88,6 +119,8 @@ void AthenaJIT::compileModule() {
   std::unique_ptr<LLVMContext> llvmCtx = std::make_unique<LLVMContext>();
   auto newModule =
       mlir::LLVM::cloneModuleIntoNewContext(llvmCtx.get(), llvmModule.get());
+
+  newModule->print(::llvm::dbgs(), nullptr);
 
   ThreadSafeModule tsm(std::move(newModule), std::move(llvmCtx));
   auto err = mJITInstance->addIRModule(std::move(tsm));

@@ -78,8 +78,9 @@ struct BuiltinConversionPattern : public AthenaGraphConversionPattern<OpT> {
     // FIXME this pattern is incorrect if node performs more than one
     //       computation.
     auto launchOp = rewriter.create<ath_rt::LaunchOp>(
-        op->getLoc(), resTypes, device, blockingEvent, "dummy", globalSize,
-        localSize, operands);
+        op->getLoc(), resTypes, device, blockingEvent,
+        concreteOp.getKernelName(), globalSize, localSize, operands);
+    launchOp.dump();
     rewriter.replaceOp(op, launchOp.getResult(0));
     return success();
   }
@@ -350,7 +351,7 @@ protected:
 namespace mlir {
 void populateGraphToRuntimeConversionPatterns(
     OwningRewritePatternList& loweringPatterns, MLIRContext* ctx) {
-  loweringPatterns.insert <
+  loweringPatterns.insert<
       // clang-format off
       GraphOpConversionPattern,
       NodeOpConversionPattern,

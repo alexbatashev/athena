@@ -289,7 +289,7 @@ def AthenaGraph_TransposeOp : AthenaGraph_Op<"transpose", [Computational]> {
   }]>];
 }
 
-def AthenaGraph_FillOp : AthenaGraph_Op<"fill", [Computational]> {
+def AthenaGraph_FillOp : AthenaGraph_Op<"fill", [ComputationalOpInterface]> {
   let summary = "Fills tensor with value";
   let description = [{ TBD }];
 
@@ -301,6 +301,11 @@ def AthenaGraph_FillOp : AthenaGraph_Op<"fill", [Computational]> {
     result.addOperands(out);
     result.types.push_back(out.getType());
   }]>];
+  let extraClassDeclaration = [{
+    llvm::StringRef getKernelName() {
+      return "ffill";
+    }
+  }];
 }
 
 #endif // ATHENA_GRAPH_OPS

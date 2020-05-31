@@ -89,12 +89,23 @@ llvm_map_components_to_libnames(llvm_libs
         AllTargetsInfos
         lto)
 
+if (APPLE)
+    set(WHOLE_ARCHIVE -Wl,-all_load)
+    set(NOWHOLE_ARCHIVE)
+elseif (UNIX)
+    set(WHOLE_ARCHIVE -Wl,--whole-archive)
+    set(NOWHOLE_ARCHIVE -Wl,--no-whole-archive)
+endif ()
+
 target_link_libraries(${ATH_BACKEND_LLVM} PRIVATE
         ${llvm_libs}
         ${AthenaJitTarget}
         MLIRIR
         MLIRStandardOps
-        MLIRAthenaGraph)
+        MLIRAthenaGraph
+        ${ATH_RT_LLVM_SUPPORT_OBJ}
+        ${ATH_RT_LLVM_DRIVER}
+        )
 target_include_directories(${ATH_BACKEND_LLVM} PRIVATE
         ${PROJECT_SOURCE_DIR}/utils/dialects/include
         ${PROJECT_BINARY_DIR}/utils/dialects/include)

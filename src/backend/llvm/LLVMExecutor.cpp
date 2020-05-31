@@ -14,16 +14,28 @@
 #include "GraphPartitionPlanner.h"
 #include "allocators/LayerAllocator.h"
 #include "jit/AthenaJIT.h"
+#include "runtime/driver/RuntimeDriver.h"
+#include "ImageManager.h"
 
-#include <athena/backend/llvm/LLVMExecutor.h>
+#include "AthenaGraph/AthenaGraphDialect.h"
+#include "AthenaRuntime/AthenaRuntimeDialect.h"
 #include <athena/backend/llvm/CodeGen.h>
-#include <athena/core/graph/internal/GraphCompiler.h>
+#include <athena/backend/llvm/LLVMExecutor.h>
 #include <athena/core/Generator.h>
+#include <athena/core/graph/internal/GraphCompiler.h>
 #include <athena/utils/error/FatalError.h>
 
+#include "mlir/IR/Builders.h"
+#include "mlir/IR/Dialect.h"
+#include "mlir/IR/MLIRContext.h"
+#include "mlir/InitAllDialects.h"
+#include "mlir/InitAllPasses.h"
+#include "mlir/Parser.h"
+#include "mlir/Pass/Pass.h"
 #include "llvm/ExecutionEngine/ExecutionEngine.h"
 #include "llvm/Support/Host.h"
-#include "mlir/IR/Builders.h"
+#include "llvm/Support/InitLLVM.h"
+#include "llvm/Support/TargetSelect.h"
 
 #include <algorithm>
 
@@ -58,17 +70,60 @@ void LLVMExecutor::evaluate(Graph& graph) {
   evaluateFunction(nullptr);
 }
 
-LLVMExecutor::LLVMExecutor() : mJITCompiler(AthenaJIT::create()) {
+LLVMExecutor::LLVMExecutor() {
+  mlir::registerAllDialects();
+  mlir::registerAllPasses();
+
+  mlir::registerDialect<mlir::ath_graph::AthenaGraphDialect>();
+  mlir::registerDialect<mlir::ath_rt::AthenaRuntimeDialect>();
+
+  ::llvm::InitializeNativeTarget();
+  ::llvm::InitializeNativeTargetAsmPrinter();
+
+#ifdef DEBUG
+  mJITCompiler = AthenaJIT::createWithDebugging();
+#else
+  mJITCompiler = AthenaJIT::create();
+#endif
   if (!mJITCompiler) {
     new utils::FatalError(utils::ATH_FATAL_OTHER,
                           "Unable to create JIT compiler");
   }
 
-  mAllocator = std::make_unique<LayerAllocator>();
+  mAllocator = std::make_shared<LayerAllocator>();
+  mRuntimeDriver = std::make_shared<RuntimeDriver>();
+
+  for (auto dev : mRuntimeDriver->getDeviceList()) {
+    dev->addModule(getOpenCLSPIRVProgram());
+    dev->linkModules();
+  }
+}
+
+void LLVMExecutor::addModule(std::string_view module) {
+  auto moduleRef =
+      mlir::parseSourceString(module.data(), mJITCompiler->getContext());
+
+  mJITCompiler->addModule(moduleRef);
+}
+
+void LLVMExecutor::execute(std::string_view name, void* userData) {
+  auto sym = mJITCompiler->lookupSymbol(name.data());
+  utils::athena_assert((bool)sym, "Failed to find function.");
+
+  auto evaluateFunction = func_cast<void(void*)>(sym);
+  evaluateFunction(userData);
 }
 
 llvm::BackendAllocator& LLVMExecutor::getAllocator() { return *mAllocator; }
-void LLVMExecutor::setAllocator(std::unique_ptr<BackendAllocator>& allocator) {
+std::shared_ptr<BackendAllocator> LLVMExecutor::getAllocatorPtr() {
+  return mAllocator;
+}
+
+void LLVMExecutor::setAllocator(std::shared_ptr<BackendAllocator>& allocator) {
   mAllocator = std::move(allocator);
+}
+
+std::vector<Device*>& LLVMExecutor::getDevices() {
+  return mRuntimeDriver->getDeviceList();
 }
 } // namespace athena::backend::llvm

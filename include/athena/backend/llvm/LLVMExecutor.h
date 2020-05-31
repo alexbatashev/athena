@@ -19,6 +19,7 @@
 #include <athena/core/graph/Traversal.h>
 #include <athena/core/internal/Executor.h>
 #include <athena/core/loader/internal/TensorAllocator.h>
+#include <athena/backend/llvm/runtime/Device.h>
 
 namespace athena::backend::llvm {
 
@@ -45,12 +46,20 @@ public:
   void evaluate(athena::core::Graph& graph) override;
 
   BackendAllocator& getAllocator();
-  void setAllocator(std::unique_ptr<BackendAllocator>& allocator);
+  std::shared_ptr<BackendAllocator> getAllocatorPtr();
+  void setAllocator(std::shared_ptr<BackendAllocator>& allocator);
+
+  std::vector<Device*>& getDevices();
+
+  void addModule(std::string_view module);
+
+  void execute(std::string_view name, void* userData);
 
 private:
   std::shared_ptr<AthenaJIT> mJITCompiler{nullptr};
-  std::unique_ptr<BackendAllocator> mAllocator;
+  std::shared_ptr<BackendAllocator> mAllocator;
   std::shared_ptr<RuntimeDriver> mRuntimeDriver;
+  std::vector<Device*> mDevices;
 };
 } // namespace athena::backend::llvm
 

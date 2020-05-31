@@ -400,10 +400,10 @@ struct LaunchOpLoweringPattern
     concreteOp.getResult(0).replaceAllUsesWith(operands.back());
 
     auto argsArray = createArray(getArgDescType(llvmDialect).getPointerTo(),
-                                 operands.size() - 3, rewriter, op->getLoc());
+                                 operands.size() - 2, rewriter, op->getLoc());
 
     auto argsOperands =
-        llvm::iterator_range(operands.begin() + 3, operands.end());
+        llvm::iterator_range(operands.begin() + 2, operands.end());
     for (auto operand : llvm::enumerate(argsOperands)) {
       auto argDesc = allocateStructure(getArgDescType(llvmDialect), rewriter,
                                        op->getLoc());
@@ -425,6 +425,7 @@ struct LaunchOpLoweringPattern
         auto sizeInBytes = createUInt64Constant(
             llvmType.getUnderlyingType()->getScalarSizeInBits() / 8,
             llvmDialect, rewriter, op->getLoc());
+        ::llvm::errs() << llvmType.getUnderlyingType()->getScalarSizeInBits() / 8 << "\n";
         setStructFieldTo(argDesc, getArgDescType(llvmDialect), sizeInBytes, 0,
                          rewriter, op->getLoc());
 
@@ -475,7 +476,7 @@ struct LaunchOpLoweringPattern
                      kerNamePtr, 0, rewriter, op->getLoc());
 
     // Set kernel arg count
-    auto argCount = createUInt64Constant(operands.size() - 3, llvmDialect,
+    auto argCount = createUInt64Constant(operands.size() - 2, llvmDialect,
                                          rewriter, op->getLoc());
     setStructFieldTo(launchCommand, getLaunchCommandType(llvmDialect), argCount,
                      1, rewriter, op->getLoc());
