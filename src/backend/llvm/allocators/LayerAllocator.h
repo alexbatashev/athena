@@ -66,12 +66,6 @@ private:
 
   std::unordered_map<MemoryRecord, int> mMemTags;
 
-  //  std::unordered_map<MemoryRecord, MemoryDomain> mLockDomainMap;
-  //  // todo replace map with another structure to allow memory on multiple
-  //  devices std::unordered_map<MemoryRecord, Device*> mDeviceMap;
-  //  std::unordered_set<MemoryRecord> mRAMSet;
-  //  std::unordered_map<MemoryRecord, std::string> mSwapMap;
-
   void updateHost(MemoryRecord record);
 
 public:
@@ -81,6 +75,7 @@ public:
 
   void allocate(const core::internal::TensorInternal& tensor,
                 Device& device) override;
+  void allocate(const MemoryRecord& record, Device& device) override;
   void allocate(const core::internal::TensorInternal& tensor) override;
   void allocate(MemoryRecord record);
 
@@ -90,16 +85,21 @@ public:
             core::internal::LockType type) override;
   void lock(const core::internal::TensorInternal& tensor, Device& device,
             core::internal::LockType type) override;
+  void lock(const MemoryRecord& tensor, Device& device,
+            core::internal::LockType type) override;
 
   void release(const core::internal::TensorInternal& tensor) override;
   void release(const core::internal::TensorInternal& tensor, Device& device);
+  void release(const MemoryRecord& record, Device& device) override;
 
   void* get(const core::internal::TensorInternal& tensor) override;
+  void* get(const MemoryRecord& record) override;
   using BackendAllocator::get;
 
 protected:
   void* getImpl(const core::internal::TensorInternal& tensor,
                 Device& device) override;
+  void* getImpl(const MemoryRecord& record, Device& device) override;
 };
 } // namespace athena::backend::llvm
 

@@ -405,7 +405,6 @@ struct LaunchOpLoweringPattern
     auto argsOperands =
         llvm::iterator_range(operands.begin() + 2, operands.end());
     for (auto operand : llvm::enumerate(argsOperands)) {
-      // auto zero = createUInt64Constant(0, llvmDialect, rewriter, op->getLoc());
       auto idx = createUInt64Constant(operand.index(), llvmDialect, rewriter,
                                       op->getLoc());
       auto argDesc = rewriter.create<LLVM::GEPOp>(
@@ -432,9 +431,6 @@ struct LaunchOpLoweringPattern
         auto sizeInBytes = createUInt64Constant(
             llvmType.getUnderlyingType()->getScalarSizeInBits() / 8,
             llvmDialect, rewriter, op->getLoc());
-        ::llvm::errs() << llvmType.getUnderlyingType()->getScalarSizeInBits() /
-                              8
-                       << "\n";
         setStructFieldTo(argDesc, getArgDescType(llvmDialect), sizeInBytes, 0,
                          rewriter, op->getLoc());
 

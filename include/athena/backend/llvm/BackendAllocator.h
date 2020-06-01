@@ -24,6 +24,7 @@ namespace athena::backend::llvm {
 class BackendAllocator : public TensorAllocator {
 protected:
   virtual void* getImpl(const TensorInternal& tensor, Device& device) = 0;
+  virtual void* getImpl(const MemoryRecord& record, Device& device) = 0;
 
 public:
   virtual void registerDevice(Device& device) = 0;
@@ -31,20 +32,25 @@ public:
   /// Allocates memory on a particular device.
   virtual void allocate(const TensorInternal& tensor, Device& device) = 0;
   // fixme implement
-  virtual void allocate(const MemoryRecord& record, Device& device){};
+  virtual void allocate(const MemoryRecord& record, Device& device) = 0;
 
   /// Locks tensor raw memory on a particular device.
   virtual void lock(const TensorInternal& tensor, Device& device,
                     LockType type) = 0;
-  // fixme implement
   virtual void lock(const MemoryRecord& record, Device& device,
-                    LockType type){};
-  virtual void release(const MemoryRecord& record, Device& device){};
+                    LockType type) = 0;
+
+  virtual void release(const MemoryRecord& record, Device& device) = 0;
 
   template <typename BufferT>
   BufferT* get(const TensorInternal& tensor, Device& device) {
     return reinterpret_cast<BufferT*>(getImpl(tensor, device));
   }
+  template <typename BufferT>
+  BufferT* get(const MemoryRecord& record, Device& device) {
+    return reinterpret_cast<BufferT*>(getImpl(record, device));
+  }
+  virtual void* get(const MemoryRecord& record) = 0;
 };
 } // namespace athena::backend::llvm
 

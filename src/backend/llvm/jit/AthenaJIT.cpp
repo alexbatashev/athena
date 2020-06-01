@@ -113,15 +113,12 @@ void AthenaJIT::compileModule() {
     ::llvm::errs() << "JIT error\n";
   }
 
-  mInternalModule->dump();
   auto llvmModule = mlir::LLVM::ModuleTranslation::translateModule(
       mInternalModule->getOperation());
 
   std::unique_ptr<LLVMContext> llvmCtx = std::make_unique<LLVMContext>();
   auto newModule =
       mlir::LLVM::cloneModuleIntoNewContext(llvmCtx.get(), llvmModule.get());
-
-  newModule->print(::llvm::dbgs(), nullptr);
 
   ThreadSafeModule tsm(std::move(newModule), std::move(llvmCtx));
   auto err = mJITInstance->addIRModule(std::move(tsm));

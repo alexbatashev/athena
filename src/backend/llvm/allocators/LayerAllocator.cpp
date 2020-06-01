@@ -24,6 +24,9 @@ void LayerAllocator::allocate(const core::internal::TensorInternal& tensor,
   MemoryRecord record{tensor.getVirtualAddress(),
                       tensor.getSize() *
                           core::sizeOfDataType(tensor.getDataType())};
+  allocate(record, device);
+}
+void LayerAllocator::allocate(const MemoryRecord& record, Device& device) {
   // Double allocation is noop.
   if (mDeviceAllocators[device.getDeviceName()]->isAllocated(record))
     return;
@@ -32,13 +35,18 @@ void LayerAllocator::allocate(const core::internal::TensorInternal& tensor,
   mLocks.insert({record, std::list<LockDescriptor>()});
   mMemTags[record] = 1;
 }
+
 void LayerAllocator::lock(const core::internal::TensorInternal& tensor,
                           Device& device, core::internal::LockType lockType) {
-  std::scoped_lock curLock{mMutex};
-
   MemoryRecord record{tensor.getVirtualAddress(),
                       tensor.getSize() *
                           core::sizeOfDataType(tensor.getDataType())};
+  lock(record, device, lockType);
+}
+
+void LayerAllocator::lock(const MemoryRecord& record, Device& device,
+                          core::internal::LockType lockType) {
+  std::scoped_lock curLock{mMutex};
 
   if (lockType == core::internal::LockType::READ_WRITE &&
       !mLocks[record].empty()) {
@@ -104,7 +112,7 @@ void LayerAllocator::deallocate(const core::internal::TensorInternal& tensor) {
                    record.virtualAddress);
   }
 
-  for (auto allocator : mDeviceAllocators) {
+  for (const auto& allocator : mDeviceAllocators) {
     if (allocator.second->isAllocated(record)) {
       allocator.second->deallocate(record);
     }
@@ -128,7 +136,9 @@ void* LayerAllocator::get(const core::internal::TensorInternal& tensor) {
   MemoryRecord record{tensor.getVirtualAddress(),
                       tensor.getSize() *
                           core::sizeOfDataType(tensor.getDataType())};
-
+  return get(record);
+}
+void* LayerAllocator::get(const MemoryRecord& record) {
   if (mRAMAllocator->isAllocated(record)) {
     return mRAMAllocator->getPtr(record);
   }
@@ -189,10 +199,14 @@ void LayerAllocator::release(const core::internal::TensorInternal& tensor) {
 }
 void* LayerAllocator::getImpl(const core::internal::TensorInternal& tensor,
                               Device& device) {
-  std::scoped_lock lock{mMutex};
   MemoryRecord record{tensor.getVirtualAddress(),
                       tensor.getSize() *
                           core::sizeOfDataType(tensor.getDataType())};
+
+  return getImpl(record, device);
+}
+void* LayerAllocator::getImpl(const MemoryRecord& record, Device& device) {
+  std::scoped_lock lock{mMutex};
 
   if (mDeviceAllocators[device.getDeviceName()]->isAllocated(record)) {
     return mDeviceAllocators[device.getDeviceName()]->getPtr(record);
@@ -244,11 +258,13 @@ void LayerAllocator::updateHost(MemoryRecord record) {
 }
 void LayerAllocator::release(const core::internal::TensorInternal& tensor,
                              Device& device) {
-  std::scoped_lock lock{mMutex};
-
   MemoryRecord record{tensor.getVirtualAddress(),
                       tensor.getSize() *
                           core::sizeOfDataType(tensor.getDataType())};
+  release(record, device);
+}
+void LayerAllocator::release(const MemoryRecord& record, Device& device) {
+  std::scoped_lock lock{mMutex};
 
   auto it = std::find_if(mLocks[record].begin(), mLocks[record].end(),
                          [&](const LockDescriptor& desc) {

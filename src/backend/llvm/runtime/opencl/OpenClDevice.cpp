@@ -13,6 +13,8 @@
 
 #include "OpenClDevice.h"
 #include "OpenClEvent.h"
+#include "athena/backend/llvm/runtime/TensorInfo.h"
+#include "../utils/utils.h"
 
 #include <athena/backend/llvm/BackendAllocator.h>
 #include <athena/backend/llvm/runtime/LaunchCommand.h>
@@ -36,8 +38,9 @@ auto OpenCLDevice::launch(BackendAllocator& allocator, LaunchCommand& cmd,
   for (size_t i = 0; i < cmd.argsCount; i++) {
     if (cmd.args[i].type == ArgDesc::TENSOR) {
       auto tensor =
-          static_cast<athena::core::internal::TensorInternal*>(cmd.args[i].arg);
-      auto* buf = allocator.get<cl_mem>(*tensor, *this);
+          static_cast<TensorInfo*>(cmd.args[i].arg);
+      auto record = tensorInfoToRecord(tensor);
+      auto* buf = allocator.get<cl_mem>(record, *this);
       clSetKernelArg(kernel, i, sizeof(cl_mem), buf);
     } else {
       clSetKernelArg(kernel, i, cmd.args[i].size, cmd.args[i].arg);
@@ -56,11 +59,15 @@ auto OpenCLDevice::launch(BackendAllocator& allocator, LaunchCommand& cmd,
   // todo check errors.
   err = clEnqueueNDRangeKernel(mQueue->getNativeQueue(), kernel, cmd.workDim,
                          nullptr, // global offset
-                         cmd.globalSize, cmd.localSize,
+                         cmd.globalSize, nullptr,
                          evtCount, // num events in wait list
                          evt,      // event list
                          &outEvent  // event
   );
+
+
+  // FIXME hacky hack to avoid early memory freeing.
+  clWaitForEvents(1, &outEvent);
 
   if (err != CL_SUCCESS) {
     std::terminate();

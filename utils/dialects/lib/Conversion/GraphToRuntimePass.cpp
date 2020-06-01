@@ -80,7 +80,6 @@ struct BuiltinConversionPattern : public AthenaGraphConversionPattern<OpT> {
     auto launchOp = rewriter.create<ath_rt::LaunchOp>(
         op->getLoc(), resTypes, device, blockingEvent,
         concreteOp.getKernelName(), globalSize, localSize, operands);
-    launchOp.dump();
     rewriter.replaceOp(op, launchOp.getResult(0));
     return success();
   }

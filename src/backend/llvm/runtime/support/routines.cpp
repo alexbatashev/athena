@@ -1,3 +1,5 @@
+#include "../utils/utils.h"
+
 #include <athena/backend/llvm/BackendAllocator.h>
 #include <athena/backend/llvm/runtime/Device.h>
 #include <athena/backend/llvm/runtime/Event.h>
@@ -10,16 +12,6 @@
 
 using namespace athena::backend::llvm;
 
-static MemoryRecord tensorInfoToRecord(TensorInfo* tensor) {
-  MemoryRecord record;
-  record.virtualAddress = tensor->virtAddr;
-  record.allocationSize = athena::core::sizeOfDataType(
-      static_cast<athena::core::DataType>(tensor->dataType));
-  for (int i = 0; i < tensor->dims; i++) {
-    record.allocationSize *= tensor->shape[i];
-  }
-  return record;
-}
 
 extern "C" {
 
@@ -51,7 +43,6 @@ ATH_RT_SUPPORT_EXPORT void ath_barrier(uint32_t count, Event** events) {}
 
 ATH_RT_SUPPORT_EXPORT Event* ath_launch(GraphHandle* handle, Device* device,
                                         Event* event, LaunchCommand& command) {
-  std::cerr << device->getDeviceName() << "\n";
   return device->launch(*handle->allocator, command, event);
 }
 }

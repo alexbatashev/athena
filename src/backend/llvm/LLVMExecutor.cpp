@@ -96,6 +96,7 @@ LLVMExecutor::LLVMExecutor() {
   for (auto dev : mRuntimeDriver->getDeviceList()) {
     dev->addModule(getOpenCLSPIRVProgram());
     dev->linkModules();
+    mAllocator->registerDevice(*dev);
   }
 }
 
