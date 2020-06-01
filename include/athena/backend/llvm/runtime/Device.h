@@ -60,8 +60,6 @@ public:
                             void* src) const = 0;
   virtual void copyToDevice(MemoryRecord record, void* src) const = 0;
 
-  virtual Queue& getQueue() = 0;
-
   virtual Event* launch(BackendAllocator&, LaunchCommand&, Event*) = 0;
 
   virtual void addModule(ProgramDesc) = 0;

@@ -77,7 +77,7 @@ public:
                 Device& device) override;
   void allocate(const MemoryRecord& record, Device& device) override;
   void allocate(const core::internal::TensorInternal& tensor) override;
-  void allocate(MemoryRecord record);
+  void allocate(const MemoryRecord& record) override;
 
   void deallocate(const core::internal::TensorInternal& tensor) override;
 

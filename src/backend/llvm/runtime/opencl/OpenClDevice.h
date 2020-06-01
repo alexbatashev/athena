@@ -44,8 +44,6 @@ public:
     mAllocator = std::make_shared<BufferAllocator>(mContext);
   }
 
-  Queue& getQueue() override { return *mQueue; }
-
   std::string getDeviceName() const override { return mDeviceName; }
   bool isPartitionSupported(PartitionDomain domain) override {
     return false; // todo implement

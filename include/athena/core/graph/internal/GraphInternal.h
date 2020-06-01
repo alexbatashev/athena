@@ -100,7 +100,12 @@ private:
 };
 
 template <typename TemplateNodeTypeInternal>
-void GraphInternal::addToGraph(utils::Index index) {}
+inline void GraphInternal::addToGraph(utils::Index index) {}
+
+template <>
+inline void GraphInternal::addToGraph<InputNodeInternal>(utils::Index index) {
+  mInputNodeIndexes.emplace_back(index);
+}
 
 } // namespace athena::core::internal
 

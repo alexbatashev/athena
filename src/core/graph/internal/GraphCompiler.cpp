@@ -18,20 +18,23 @@
 
 namespace athena::core::internal {
 void GraphCompiler::compile(Graph& graph, Generator& generator) {
-  auto traversal = graph.traverse();
+  auto& traversal = graph.traverse();
   const auto& clusters = traversal.getClusters();
 
-  auto genGraph = generator.createGraph(graph.getName().getString(),
-                                        graph.getPublicIndex());
-
-  std::map<utils::Index, GenValue> nodeResults;
+  std::map<utils::Index, GenNode> generatedNodes;
 
   auto ctxInternal = graph.getContext().internal();
-  for (auto c : utils::enumerate(clusters)) {
-    for (const auto& node : c.value().content) {
+  size_t clusterId = 0;
+  for (auto& c : clusters) {
+    for (const auto& node : c.content) {
       auto topLevelInsPoint = generator.getInsertionPoint();
       auto& nodeInternal =
           ctxInternal->get<AbstractNodeInternal>(node.nodeIndex);
+      if (nodeInternal.getType() == NodeType::OUTPUT) {
+        // todo OutputNodes are not generated. Should they?
+      generator.setInsertionPoint(topLevelInsPoint);
+        continue;
+      }
       std::vector<TensorInternal*> inputs;
       for (auto inp : node.input) {
         auto& incNode = ctxInternal->get<AbstractNodeInternal>(inp.nodeIndex);
@@ -40,8 +43,9 @@ void GraphCompiler::compile(Graph& graph, Generator& generator) {
       }
       // fixme don't use const_cast
       auto genNode = generator.createNode(
-          nodeInternal.getName().getString(), node.nodeIndex, c.index(), inputs,
+          nodeInternal.getName().getString(), node.nodeIndex, clusterId, inputs,
           *const_cast<TensorInternal*>(nodeInternal.getTensorPtr()));
+      generatedNodes[node.nodeIndex] = genNode;
 
       generator.setInsertionPoint(genNode);
 
@@ -52,11 +56,10 @@ void GraphCompiler::compile(Graph& graph, Generator& generator) {
         generator.callBuiltin<builtin::Lock>(genNode.getResult(),
                                              LockType::READ_WRITE);
         generator.callBuiltin<builtin::InvokeLoader>(genNode.getResult());
+        generator.callBuiltin<builtin::Release>(genNode.getResult());
         generator.callBuiltin<builtin::Return>(genNode.getResult());
       } else if (nodeInternal.getType() == NodeType::DEFAULT) {
         auto defaultNode = ctxInternal->get<NodeInternal>(node.nodeIndex);
-        generator.callBuiltin<builtin::Lock>(genNode.getResult(),
-                                             LockType::READ_WRITE);
         std::vector<utils::Index> idx;
         for (auto inp : node.input) {
           idx.push_back(inp.nodeIndex);
@@ -67,10 +70,29 @@ void GraphCompiler::compile(Graph& graph, Generator& generator) {
 
         generator.callBuiltin<builtin::Return>(opResult);
       }
+      generator.setInsertionPoint(topLevelInsPoint);
+    }
 
-      // todo OutputNodes are not generated. Should they?
+    clusterId++;
+  }
 
+  // Nodes can't be referenced before they are generated. Thus traverse Graph
+  // twice to produce correct output.
+  auto genGraph = generator.createGraph(graph.getName().getString(),
+                                        graph.getPublicIndex());
+  clusterId = 0;
+  std::map<utils::Index, GenValue> nodeResults;
+  for (auto& c : clusters) {
+    for (const auto& node : c.content) {
+      auto& nodeInternal =
+          ctxInternal->get<AbstractNodeInternal>(node.nodeIndex);
+      if (nodeInternal.getType() == NodeType::OUTPUT) {
+        // todo OutputNodes are not generated. Should they?
+        continue;
+      }
       generator.setInsertionPoint(genGraph);
+
+      auto genNode = generatedNodes.at(node.nodeIndex);
 
       std::vector<GenValue> nodes;
       for (auto idx : node.input) {
@@ -79,13 +101,12 @@ void GraphCompiler::compile(Graph& graph, Generator& generator) {
       auto res =
           generator.callBuiltin<builtin::NodeEval>(genGraph, genNode, nodes);
       nodeResults[node.nodeIndex] = res;
-      generator.setInsertionPoint(topLevelInsPoint);
     }
-
     auto checkoint = generator.getInsertionPoint();
     generator.setInsertionPoint(genGraph);
-    generator.callBuiltin<builtin::Barrier>(c.index());
+    generator.callBuiltin<builtin::Barrier>(clusterId);
     generator.setInsertionPoint(checkoint);
+    clusterId++;
   }
 }
 } // namespace athena::core::internal

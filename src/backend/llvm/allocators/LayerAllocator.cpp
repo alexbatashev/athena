@@ -92,7 +92,7 @@ void LayerAllocator::allocate(const core::internal::TensorInternal& tensor) {
                           core::sizeOfDataType(tensor.getDataType())};
   allocate(record);
 }
-void LayerAllocator::allocate(MemoryRecord record) {
+void LayerAllocator::allocate(const MemoryRecord& record) {
   if (mRAMAllocator->isAllocated(record))
     return;
 

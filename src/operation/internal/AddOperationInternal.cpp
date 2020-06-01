@@ -39,9 +39,30 @@ core::internal::GenValue AddOperationInternal::gen(
     utils::SharedPtr<core::internal::ContextInternal> context,
     core::internal::Generator& generator,
     std::vector<utils::Index>& operationArguments,
-    core::internal::GenNode) const {
-  // TODO call generator
-  return core::internal::GenValue{};
+    core::internal::GenNode parentNode) const {
+  using namespace core::internal;
+  GenValue a = parentNode.getOperand(0);
+  GenValue b = parentNode.getOperand(1);
+  GenValue out = parentNode.getResult();
+
+  generator.setInsertionPoint(parentNode);
+  
+  // TODO support other data types
+  // TODO take scale values from operation
+  GenValue scaleA = generator.createConstant(1.0f);
+  GenValue scaleB = generator.createConstant(1.0f);
+
+  generator.callBuiltin<builtin::Lock>(a, LockType::READ);
+  generator.callBuiltin<builtin::Lock>(b, LockType::READ);
+  generator.callBuiltin<builtin::Lock>(out, LockType::READ_WRITE);
+
+  GenValue res = generator.callBuiltin<builtin::Add>(a, scaleA, b, scaleB, out);
+
+  generator.callBuiltin<builtin::Release>(out);
+  generator.callBuiltin<builtin::Release>(b);
+  generator.callBuiltin<builtin::Release>(a);
+
+  return res;
 }
 
 std::tuple<utils::Index, std::vector<core::internal::Edge>,

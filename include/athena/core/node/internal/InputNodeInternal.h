@@ -35,6 +35,8 @@ public:
 
   bool isFrozen() const;
 
+  utils::Index getLoader() { return mLoaderIndex; }
+
 protected:
   bool mIsFrozen;
   utils::Index mLoaderIndex;

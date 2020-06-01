@@ -1,5 +1,6 @@
-set(INT_TEST_SRC
-  main.cpp)
+set(INT_TEST_SRC 
+  core.cpp
+  ir.cpp)
 
 add_athena_executable(
         TestIntegrationJITRunnable

@@ -219,7 +219,7 @@ def AthenaGraph_BarrierOp : AthenaGraph_Op<"barrier", [IsolatedFromAbove]> {
 // Athena Graph builtins
 //===----------------------------------------------------------------------===//
 
-def AthenaGraph_AddOp : AthenaGraph_Op<"add", [Computational]> {
+def AthenaGraph_AddOp : AthenaGraph_Op<"add", [ComputationalOpInterface]> {
   let summary = "Element-wise addition operation";
   let description = [{ TBD }];
 
@@ -236,6 +236,11 @@ def AthenaGraph_AddOp : AthenaGraph_Op<"add", [Computational]> {
     result.addOperands(out);
     result.types.push_back(out.getType());
   }]>];
+  let extraClassDeclaration = [{
+    llvm::StringRef getKernelName() {
+      return "fadd";
+    }
+  }];
 }
 
 def AthenaGraph_MulOp : AthenaGraph_Op<"mul", [Computational]> {

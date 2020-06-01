@@ -90,7 +90,7 @@ TEST_F(OpenCLRuntimeTest, FindsAllDevices) {
   ASSERT_EQ(devCount, rtDevices.count);
 }
 
-TEST_F(OpenCLRuntimeTest, ExecutesSimpleKernel) {
+TEST_F(OpenCLRuntimeTest, DISABLED_ExecutesSimpleKernel) {
   using namespace athena::core;
   using namespace athena::backend::llvm;
 
@@ -148,7 +148,7 @@ TEST_F(OpenCLRuntimeTest, ExecutesSimpleKernel) {
 
     allocator.lock(tensor, deviceContainer.devices[i], LockType::READ_WRITE);
     device.launch(allocator, command, nullptr);
-    device.getQueue().wait();
+    // device.getQueue().wait();
     allocator.release(tensor, deviceContainer.devices[i]);
 
     allocator.lock(tensor, LockType::READ);

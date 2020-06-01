@@ -33,6 +33,7 @@ public:
   virtual void allocate(const TensorInternal& tensor, Device& device) = 0;
   // fixme implement
   virtual void allocate(const MemoryRecord& record, Device& device) = 0;
+  virtual void allocate(const MemoryRecord& record) = 0;
 
   /// Locks tensor raw memory on a particular device.
   virtual void lock(const TensorInternal& tensor, Device& device,

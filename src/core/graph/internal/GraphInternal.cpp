@@ -472,9 +472,4 @@ std::tuple<utils::Index, utils::Index> GraphInternal::getGradient() {
                          weightChangingGraphIndex);
 }
 
-template <>
-void GraphInternal::addToGraph<InputNodeInternal>(utils::Index index) {
-  mInputNodeIndexes.emplace_back(index);
-}
-
 } // namespace athena::core::internal

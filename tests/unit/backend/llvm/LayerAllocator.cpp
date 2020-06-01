@@ -21,15 +21,7 @@
 using namespace athena::backend::llvm;
 using namespace athena::core;
 
-class MockQueue : public Queue {
-public:
-  void wait() override {}
-};
-
 class MockDevice : public Device {
-private:
-  MockQueue mQueue;
-
 public:
   std::string getDeviceName() const override { return "Mock"; }
   bool isPartitionSupported(PartitionDomain domain) override { return false; }
@@ -43,7 +35,6 @@ public:
   bool operator==(const Device& device) const override {
     return device.getDeviceName() == getDeviceName();
   }
-  Queue& getQueue() override { return mQueue; }
   void copyToHost(const internal::TensorInternal& tensor,
                   void* dest) const override{};
   void copyToHost(MemoryRecord record, void* dest) const override{};

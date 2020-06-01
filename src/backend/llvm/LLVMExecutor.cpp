@@ -12,15 +12,17 @@
 //===----------------------------------------------------------------------===//
 
 #include "GraphPartitionPlanner.h"
+#include "ImageManager.h"
 #include "allocators/LayerAllocator.h"
 #include "jit/AthenaJIT.h"
 #include "runtime/driver/RuntimeDriver.h"
-#include "ImageManager.h"
+#include "runtime/host/HostDevice.h"
 
 #include "AthenaGraph/AthenaGraphDialect.h"
 #include "AthenaRuntime/AthenaRuntimeDialect.h"
 #include <athena/backend/llvm/CodeGen.h>
 #include <athena/backend/llvm/LLVMExecutor.h>
+#include <athena/backend/llvm/runtime/GraphHandle.h>
 #include <athena/core/Generator.h>
 #include <athena/core/graph/internal/GraphCompiler.h>
 #include <athena/utils/error/FatalError.h>
@@ -58,6 +60,8 @@ void LLVMExecutor::addGraph(Graph& graph) {
 
   core::internal::GraphCompiler::compile(graph, generator);
 
+  ref->dump();
+
   mJITCompiler->addModule(ref);
 }
 
@@ -66,8 +70,32 @@ void LLVMExecutor::evaluate(Graph& graph) {
   utils::athena_assert((bool)sym, "Failed to find graph function. ",
                        "Did you forget to add Graph?");
 
+  GraphHandle handle;
+  handle.allocator = mAllocator;
+  handle.devices.push_back(mRuntimeDriver->getDeviceList().front());
+  // fixme host device must be loaded through runtime driver
+  handle.devices.push_back(new HostDevice());
+
+  auto& traversal = graph.traverse();
+
+  auto ctxInternal = graph.getContext().internal();
+  auto frontCluster = traversal.getClusters().front();
+  for (const auto& node : frontCluster.content) {
+    auto& nodeInternal = ctxInternal->get<AbstractNodeInternal>(node.nodeIndex);
+
+    if (nodeInternal.getType() == NodeType::INPUT) {
+      auto inpNode = ctxInternal->get<InputNodeInternal>(node.nodeIndex);
+      auto loaderIdx = inpNode.getLoader();
+      auto& loader = ctxInternal->get<AbstractLoaderInternal>(loaderIdx);
+      // fixme do not use const cast
+      handle.mLoaders[node.nodeIndex] =
+          const_cast<AbstractLoaderInternal*>(&loader);
+      handle.isHostNode.insert(node.nodeIndex);
+    }
+  }
+
   auto evaluateFunction = func_cast<void(void*)>(sym);
-  evaluateFunction(nullptr);
+  evaluateFunction(&handle);
 }
 
 LLVMExecutor::LLVMExecutor() {
@@ -93,11 +121,13 @@ LLVMExecutor::LLVMExecutor() {
   mAllocator = std::make_shared<LayerAllocator>();
   mRuntimeDriver = std::make_shared<RuntimeDriver>();
 
-  for (auto dev : mRuntimeDriver->getDeviceList()) {
-    dev->addModule(getOpenCLSPIRVProgram());
-    dev->linkModules();
-    mAllocator->registerDevice(*dev);
-  }
+  // for (auto dev : mRuntimeDriver->getDeviceList()) {
+  // fixme use multiple devices
+  auto* dev = mRuntimeDriver->getDeviceList().front();
+  dev->addModule(getOpenCLSPIRVProgram());
+  dev->linkModules();
+  mAllocator->registerDevice(*dev);
+  // }
 }
 
 void LLVMExecutor::addModule(std::string_view module) {

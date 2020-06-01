@@ -2,6 +2,7 @@
 
 #include <memory>
 #include <vector>
+#include <set>
 
 #pragma once
 
@@ -19,4 +20,5 @@ struct GraphHandle {
   std::vector<athena::backend::llvm::Device*> devices;
   std::unordered_map<uint64_t, athena::core::internal::AbstractLoaderInternal*>
       mLoaders;
+  std::set<uint64_t> isHostNode;
 };
