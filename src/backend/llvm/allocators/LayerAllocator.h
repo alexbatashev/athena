@@ -83,12 +83,15 @@ public:
 
   void lock(const core::internal::TensorInternal& tensor,
             core::internal::LockType type) override;
+  void lock(const MemoryRecord& record,
+            core::internal::LockType type) override;
   void lock(const core::internal::TensorInternal& tensor, Device& device,
             core::internal::LockType type) override;
   void lock(const MemoryRecord& tensor, Device& device,
             core::internal::LockType type) override;
 
   void release(const core::internal::TensorInternal& tensor) override;
+  void release(const MemoryRecord& tensor) override;
   void release(const core::internal::TensorInternal& tensor, Device& device);
   void release(const MemoryRecord& record, Device& device) override;
 

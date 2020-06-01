@@ -150,11 +150,13 @@ void* LayerAllocator::get(const MemoryRecord& record) {
 
 void LayerAllocator::lock(const core::internal::TensorInternal& tensor,
                           LockType type) {
-  std::scoped_lock lock{mMutex};
-
   MemoryRecord record{tensor.getVirtualAddress(),
                       tensor.getSize() *
                           core::sizeOfDataType(tensor.getDataType())};
+  lock(record, type);
+}
+void LayerAllocator::lock(const MemoryRecord& record, LockType type) {
+  std::scoped_lock lock{mMutex};
 
   if (type == core::internal::LockType::READ_WRITE && !mLocks[record].empty()) {
     new FatalError(
@@ -181,11 +183,13 @@ void LayerAllocator::lock(const core::internal::TensorInternal& tensor,
   mRAMAllocator->lock(record);
 }
 void LayerAllocator::release(const core::internal::TensorInternal& tensor) {
-  std::scoped_lock lock{mMutex};
-
   MemoryRecord record{tensor.getVirtualAddress(),
                       tensor.getSize() *
                           core::sizeOfDataType(tensor.getDataType())};
+  release(record);
+}
+void LayerAllocator::release(const MemoryRecord& record) {
+  std::scoped_lock lock{mMutex};
 
   auto it = std::find_if(mLocks[record].begin(), mLocks[record].end(),
                          [&](const LockDescriptor& desc) {

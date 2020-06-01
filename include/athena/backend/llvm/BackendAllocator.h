@@ -39,8 +39,11 @@ public:
                     LockType type) = 0;
   virtual void lock(const MemoryRecord& record, Device& device,
                     LockType type) = 0;
+  // For test purposes only
+  virtual void lock(const MemoryRecord& record, LockType type) = 0;
 
   virtual void release(const MemoryRecord& record, Device& device) = 0;
+  virtual void release(const MemoryRecord& record) = 0;
 
   template <typename BufferT>
   BufferT* get(const TensorInternal& tensor, Device& device) {

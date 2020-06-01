@@ -24,7 +24,7 @@ module {
 }
 )";
 
-TEST(JITIntegration, FillOperationSample) {
+TEST(JITIntegration, DISABLED_FillOperationSample) {
   LLVMExecutor executor;
   executor.addModule(IR);
 
@@ -33,4 +33,16 @@ TEST(JITIntegration, FillOperationSample) {
   handle.devices = executor.getDevices();
 
   executor.execute("testGraph", &handle);
+
+  auto& allocator = executor.getAllocator();
+
+  MemoryRecord record;
+  record.virtualAddress = 1;
+  record.allocationSize = 32 * 4;
+  allocator.lock(record, LockType::READ);
+  auto data = static_cast<float*>(allocator.get(record));
+  for (int i = 0; i < 32; i++) {
+    EXPECT_FLOAT_EQ(data[i], 42.0f);
+  }
+  allocator.release(record);
 }
