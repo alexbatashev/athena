@@ -399,18 +399,18 @@ struct LaunchOpLoweringPattern
 
     concreteOp.getResult(0).replaceAllUsesWith(operands.back());
 
-    auto argsArray = createArray(getArgDescType(llvmDialect).getPointerTo(),
+    auto argsArray = createArray(getArgDescType(llvmDialect),
                                  operands.size() - 2, rewriter, op->getLoc());
 
     auto argsOperands =
         llvm::iterator_range(operands.begin() + 2, operands.end());
     for (auto operand : llvm::enumerate(argsOperands)) {
-      auto zero = createUInt64Constant(0, llvmDialect, rewriter, op->getLoc());
+      // auto zero = createUInt64Constant(0, llvmDialect, rewriter, op->getLoc());
       auto idx = createUInt64Constant(operand.index(), llvmDialect, rewriter,
                                       op->getLoc());
       auto argDesc = rewriter.create<LLVM::GEPOp>(
           op->getLoc(), getArgDescType(llvmDialect), argsArray,
-          ValueRange{zero, idx});
+          ValueRange{idx});
 
       auto llvmType = operand.value().getType().cast<LLVM::LLVMType>();
       if (llvmType.isPointerTy() &&
@@ -418,8 +418,11 @@ struct LaunchOpLoweringPattern
         // Most likely this is a tensor.
         // todo are there corner cases?
 
-        setStructFieldTo(argDesc, getArgDescType(llvmDialect), operand.value(),
-                         1, rewriter, op->getLoc());
+        auto tensorPtr = rewriter.create<LLVM::BitcastOp>(
+            op->getLoc(), LLVM::LLVMType::getInt8Ty(llvmDialect).getPointerTo(),
+            operand.value());
+        setStructFieldTo(argDesc, getArgDescType(llvmDialect), tensorPtr, 1,
+                         rewriter, op->getLoc());
         // todo smarter way
         auto zero =
             createUInt32Constant(0, llvmDialect, rewriter, op->getLoc());

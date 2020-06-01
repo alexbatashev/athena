@@ -113,6 +113,7 @@ void AthenaJIT::compileModule() {
     ::llvm::errs() << "JIT error\n";
   }
 
+  mInternalModule->dump();
   auto llvmModule = mlir::LLVM::ModuleTranslation::translateModule(
       mInternalModule->getOperation());
 
