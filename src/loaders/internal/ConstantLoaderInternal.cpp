@@ -13,11 +13,35 @@
 
 #include <athena/loaders/internal/ConstantLoaderInternal.h>
 
+#include <numeric>
+
 namespace athena::loaders::internal {
 ConstantLoaderInternal::ConstantLoaderInternal(
     utils::WeakPtr<core::internal::ContextInternal> context,
     utils::Index publicIndex, double value, utils::String name)
     : core::internal::AbstractLoaderInternal(std::move(context), publicIndex,
                                              std::move(name)),
-      mValue(std::move(value)) {}
+      mDoubleValue(value) {}
+ConstantLoaderInternal::ConstantLoaderInternal(
+    utils::WeakPtr<core::internal::ContextInternal> context,
+    utils::Index publicIndex, float value, utils::String name)
+    : core::internal::AbstractLoaderInternal(std::move(context), publicIndex,
+                                             std::move(name)),
+      mFloatValue(value) {}
+void ConstantLoaderInternal::load(core::Accessor<float>& acc) {
+  auto& shape = acc.getShape();
+  auto total =
+      std::accumulate(shape.begin(), shape.end(), 1, std::multiplies<>());
+  for (uint64_t i = 0; i < total; i++) {
+    acc(i) = mFloatValue;
+  }
+}
+void ConstantLoaderInternal::load(core::Accessor<double>& acc) {
+  auto& shape = acc.getShape();
+  auto total =
+      std::accumulate(shape.begin(), shape.end(), 1, std::multiplies<>());
+  for (uint64_t i = 0; i < total; i++) {
+    acc(i) = mDoubleValue;
+  }
+}
 } // namespace athena::loaders::internal

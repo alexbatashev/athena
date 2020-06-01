@@ -25,6 +25,9 @@ public:
                      utils::Index publicIndex, utils::Index sourceTensor,
                      utils::String name = utils::String(""));
 
+  void load(core::Accessor<float>&) override{};
+  void load(core::Accessor<double>&) override{};
+
 protected:
   utils::Index mSourceTensor;
 };

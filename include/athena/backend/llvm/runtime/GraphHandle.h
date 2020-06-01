@@ -5,11 +5,18 @@
 
 #pragma once
 
-namespace athena::backend::llvm {
+namespace athena {
+namespace backend::llvm {
 class BackendAllocator;
 }
+namespace core::internal {
+class AbstractLoaderInternal;
+}
+} // namespace athena
 
 struct GraphHandle {
   std::shared_ptr<athena::backend::llvm::BackendAllocator> allocator;
   std::vector<athena::backend::llvm::Device*> devices;
+  std::unordered_map<uint64_t, athena::core::internal::AbstractLoaderInternal*>
+      mLoaders;
 };

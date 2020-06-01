@@ -25,9 +25,18 @@ public:
       utils::WeakPtr<core::internal::ContextInternal> context,
       utils::Index publicIndex, double value,
       utils::String name = utils::String(""));
+  ConstantLoaderInternal(
+      utils::WeakPtr<core::internal::ContextInternal> context,
+      utils::Index publicIndex, float value,
+      utils::String name = utils::String(""));
+
+  void load(core::Accessor<float>&) override;
+  void load(core::Accessor<double>&) override;
 
 protected:
-  double mValue;
+  // fixme std::variant?
+  float mFloatValue;
+  double mDoubleValue;
 };
 } // namespace athena::loaders::internal
 

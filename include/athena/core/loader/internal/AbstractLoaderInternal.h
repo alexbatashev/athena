@@ -18,6 +18,7 @@
 #include <athena/core/context/internal/ContextInternal.h>
 #include <athena/core/core_export.h>
 #include <athena/core/loader/internal/TensorAllocator.h>
+#include <athena/core/tensor/Accessor.h>
 #include <athena/utils/string/StringView.h>
 
 namespace athena::core::internal {
@@ -29,6 +30,9 @@ public:
   AbstractLoaderInternal(utils::WeakPtr<ContextInternal> context,
                          utils::Index publicIndex,
                          utils::String name = utils::String(""));
+
+  virtual void load(Accessor<float>&) = 0;
+  virtual void load(Accessor<double>&) = 0;
 
 protected:
   utils::String mName;
