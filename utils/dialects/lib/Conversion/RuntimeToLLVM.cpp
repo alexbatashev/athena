@@ -71,9 +71,8 @@ static void setArrayEltTo(Value arrayAlloca, Value value, unsigned index,
   auto idxConst =
       createUInt32Constant(index, &arrayType.getDialect(), rewriter, loc);
 
-  auto eltPtr =
-      rewriter.create<LLVM::GEPOp>(loc, arrayType,
-                                   arrayAlloca, ValueRange{idxConst});
+  auto eltPtr = rewriter.create<LLVM::GEPOp>(loc, arrayType, arrayAlloca,
+                                             ValueRange{idxConst});
   rewriter.create<LLVM::StoreOp>(loc, value, eltPtr);
 }
 
@@ -119,11 +118,13 @@ static auto lockTypeStringToInt(llvm::StringRef str) -> uint32_t {
 }
 
 static auto createArray(LLVM::LLVMType type, uint32_t size,
-                         ConversionPatternRewriter& rewriter, Location loc) -> Value {
+                        ConversionPatternRewriter& rewriter, Location loc)
+    -> Value {
   auto sizeConst =
       createUInt32Constant(size, &type.getDialect(), rewriter, loc);
   auto arrayTy = LLVM::LLVMType::getArrayTy(type, size);
-  return rewriter.create<LLVM::AllocaOp>(loc, type.getPointerTo(), sizeConst, 16);
+  return rewriter.create<LLVM::AllocaOp>(loc, type.getPointerTo(), sizeConst,
+                                         16);
 }
 
 namespace {
@@ -286,8 +287,7 @@ struct BarrierOpLoweringPattern
     auto callee = module.lookupSymbol<LLVM::LLVMFuncOp>("ath_barrier");
 
     auto numEvents = createUInt64Constant(concreteOp.getNumOperands(),
-                                          llvmDialect, rewriter,
-                                          op->getLoc());
+                                          llvmDialect, rewriter, op->getLoc());
 
     auto eventsArray =
         createArray(LLVM::LLVMType::getInt8Ty(llvmDialect).getPointerTo(),
@@ -389,9 +389,9 @@ struct LaunchOpLoweringPattern
   using AthenaRuntimeConversionPattern<
       ath_rt::LaunchOp>::AthenaRuntimeConversionPattern;
 
-  LogicalResult
-  matchAndRewrite(Operation* op, ArrayRef<Value> operands,
-                  ConversionPatternRewriter& rewriter) const override {
+  auto matchAndRewrite(Operation* op, ArrayRef<Value> operands,
+                       ConversionPatternRewriter& rewriter) const
+      -> LogicalResult override {
     auto concreteOp = llvm::cast<ath_rt::LaunchOp>(op);
     auto module = op->getParentOfType<ModuleOp>();
     auto* llvmDialect =
@@ -405,12 +405,16 @@ struct LaunchOpLoweringPattern
     auto argsOperands =
         llvm::iterator_range(operands.begin() + 2, operands.end());
     for (auto operand : llvm::enumerate(argsOperands)) {
-      auto argDesc = allocateStructure(getArgDescType(llvmDialect), rewriter,
-                                       op->getLoc());
+      auto zero = createUInt64Constant(0, llvmDialect, rewriter, op->getLoc());
+      auto idx = createUInt64Constant(operand.index(), llvmDialect, rewriter,
+                                      op->getLoc());
+      auto argDesc = rewriter.create<LLVM::GEPOp>(
+          op->getLoc(), getArgDescType(llvmDialect), argsArray,
+          ValueRange{zero, idx});
 
       auto llvmType = operand.value().getType().cast<LLVM::LLVMType>();
       if (llvmType.isPointerTy() &&
-          llvmType.getPointerElementTy().getUnderlyingType()->isIntegerTy(8)) {
+          llvmType.getPointerElementTy().getUnderlyingType()->isStructTy()) {
         // Most likely this is a tensor.
         // todo are there corner cases?
 
@@ -425,7 +429,9 @@ struct LaunchOpLoweringPattern
         auto sizeInBytes = createUInt64Constant(
             llvmType.getUnderlyingType()->getScalarSizeInBits() / 8,
             llvmDialect, rewriter, op->getLoc());
-        ::llvm::errs() << llvmType.getUnderlyingType()->getScalarSizeInBits() / 8 << "\n";
+        ::llvm::errs() << llvmType.getUnderlyingType()->getScalarSizeInBits() /
+                              8
+                       << "\n";
         setStructFieldTo(argDesc, getArgDescType(llvmDialect), sizeInBytes, 0,
                          rewriter, op->getLoc());
 
@@ -438,12 +444,11 @@ struct LaunchOpLoweringPattern
             valAlloc);
         setStructFieldTo(argDesc, getArgDescType(llvmDialect), bitcastArg, 1,
                          rewriter, op->getLoc());
-        auto one32 = createUInt32Constant(1, llvmDialect, rewriter, op->getLoc());
-        setStructFieldTo(argDesc, getArgDescType(llvmDialect), one32, 2, rewriter,
-                         op->getLoc());
+        auto one32 =
+            createUInt32Constant(1, llvmDialect, rewriter, op->getLoc());
+        setStructFieldTo(argDesc, getArgDescType(llvmDialect), one32, 2,
+                         rewriter, op->getLoc());
       }
-      setArrayEltTo(argsArray, argDesc, operand.index(), rewriter,
-                    op->getLoc());
     }
 
     auto launchCommand = allocateStructure(getLaunchCommandType(llvmDialect),
@@ -471,7 +476,9 @@ struct LaunchOpLoweringPattern
     }
     auto kerNameGlobalAddr =
         rewriter.create<LLVM::AddressOfOp>(op->getLoc(), kernelNameVal);
-    auto kerNamePtr = rewriter.create<LLVM::BitcastOp>(op->getLoc(), LLVM::LLVMType::getInt8Ty(llvmDialect).getPointerTo(), kerNameGlobalAddr);
+    auto kerNamePtr = rewriter.create<LLVM::BitcastOp>(
+        op->getLoc(), LLVM::LLVMType::getInt8Ty(llvmDialect).getPointerTo(),
+        kerNameGlobalAddr);
     setStructFieldTo(launchCommand, getLaunchCommandType(llvmDialect),
                      kerNamePtr, 0, rewriter, op->getLoc());
 
