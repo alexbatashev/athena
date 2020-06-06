@@ -284,6 +284,8 @@ def AthenaGraph_TransposeOp : AthenaGraph_Op<"transpose", [Computational]> {
   let summary = "Matrix transposition operation";
   let description = [{ TBD }];
 
+  let hasCanonicalizer = 1;
+
   let arguments = (ins AnyTensor:$a, AnyTensor:$res);
   let results = (outs AnyTensor);
   let builders = [OpBuilder<"OpBuilder& builder, OperationState& result, "

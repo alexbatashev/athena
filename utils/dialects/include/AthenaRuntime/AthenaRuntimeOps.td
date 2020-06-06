@@ -23,7 +23,7 @@ def AthenaRuntime_LaunchOp : AthenaRuntime_Op<"launch"> {
 }
 
 def AthenaRuntime_DeviceSelectOp : AthenaRuntime_Op<"select_device", 
-                                                               [NoSideEffect]> {
+                                                 [ConstantLike, NoSideEffect]> {
   let summary = "Selects device for specified node";
   let description = [{ TBD }];
 

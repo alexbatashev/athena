@@ -2,6 +2,7 @@ add_mlir_dialect_library(MLIRAthenaGraph
         AthenaGraphDialect.cpp
         AthenaGraphOps.cpp
         ComputationalOpInterface.cpp
+        PeepholePatterns.cpp
 
         ADDITIONAL_HEADER_DIRS
         ${PROJECT_SOURCE_DIR}/include
