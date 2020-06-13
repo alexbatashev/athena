@@ -407,9 +407,9 @@ struct LaunchOpLoweringPattern
     for (auto operand : llvm::enumerate(argsOperands)) {
       auto idx = createUInt64Constant(operand.index(), llvmDialect, rewriter,
                                       op->getLoc());
-      auto argDesc = rewriter.create<LLVM::GEPOp>(
-          op->getLoc(), getArgDescType(llvmDialect), argsArray,
-          ValueRange{idx});
+      auto argDesc = rewriter.create<LLVM::GEPOp>(op->getLoc(),
+                                                  getArgDescType(llvmDialect),
+                                                  argsArray, ValueRange{idx});
 
       auto llvmType = operand.value().getType().cast<LLVM::LLVMType>();
       if (llvmType.isPointerTy() &&
@@ -454,8 +454,7 @@ struct LaunchOpLoweringPattern
                                            rewriter, op->getLoc());
 
     // Set kernel name
-    llvm::Twine kernelNameTwine = concreteOp.kernel() + "\0\0";
-    std::string kernelNameStr = kernelNameTwine.str();
+    auto kernelNameStr = concreteOp.kernel();
 
     Operation* globalString =
         op->getParentOfType<ModuleOp>().lookupSymbol(kernelNameStr);
@@ -465,12 +464,17 @@ struct LaunchOpLoweringPattern
     } else {
       OpBuilder builder(module);
       builder.setInsertionPointToStart(module.getBody());
-      // todo string must be null-terminated.
+      // todo add small string optimization for null-terminated strings.
       auto stringType = LLVM::LLVMType::getArrayTy(
-          LLVM::LLVMType::getInt8Ty(llvmDialect), kernelNameStr.size());
-      auto kernelNameAttr = builder.getStringAttr(kernelNameStr.data());
+          LLVM::LLVMType::getInt8Ty(llvmDialect), kernelNameStr.size() + 1);
+      char* strData = new char[kernelNameStr.size() + 1];
+      strcpy(strData, kernelNameStr.data());
+      strData[kernelNameStr.size()] = '\00';
+      auto kernelNameAttr = builder.getStringAttr(
+          llvm::StringRef(strData, kernelNameStr.size() + 1));
+      delete[] strData;
       kernelNameVal = builder.create<LLVM::GlobalOp>(
-          builder.getUnknownLoc(), stringType, /*isConstant*/ false,
+          builder.getUnknownLoc(), stringType, /*isConstant*/ true,
           LLVM::Linkage::Private, kernelNameStr, kernelNameAttr);
     }
     auto kerNameGlobalAddr =

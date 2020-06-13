@@ -23,7 +23,6 @@ namespace athena::backend::llvm {
 auto OpenCLDevice::launch(BackendAllocator& allocator, LaunchCommand& cmd,
                           Event* event) -> Event* {
 
-  // auto& queue = static_cast<OpenClQueue&>(oclDevice->getQueue());
   auto oclEvent = static_cast<OpenCLEvent*>(event);
 
   cl_int err;
@@ -59,7 +58,7 @@ auto OpenCLDevice::launch(BackendAllocator& allocator, LaunchCommand& cmd,
   // todo check errors.
   err = clEnqueueNDRangeKernel(mQueue->getNativeQueue(), kernel, cmd.workDim,
                          nullptr, // global offset
-                         cmd.globalSize, nullptr,
+                         cmd.globalSize, cmd.globalSize,    // TODO second argument to nullptr
                          evtCount, // num events in wait list
                          evt,      // event list
                          &outEvent  // event
@@ -78,12 +77,12 @@ auto OpenCLDevice::launch(BackendAllocator& allocator, LaunchCommand& cmd,
 
 void OpenCLDevice::addModule(ProgramDesc prog) {
   cl_program program;
-  cl_int err;
+  cl_int err = CL_SUCCESS;
   switch (prog.type) {
   case ProgramDesc::ProgramType::TEXT:
     // fixme check errors
     program = clCreateProgramWithSource(mContext, 1, &prog.data, &prog.length,
-                                        nullptr);
+                                        &err);
     break;
   case ProgramDesc::ProgramType::BINARY:
     program = clCreateProgramWithBinary(
