@@ -66,6 +66,11 @@ add_athena_library(${ATH_BACKEND_LLVM} STATIC
         ImageManager.cpp
         CodeGen.cpp)
 
+if (ATHENA_ENABLE_EXPERIMENTAL_SYCL)
+  add_subdirectory(runtime/sycl)
+  add_dependencies(${ATH_BACKEND_LLVM} ${ATH_RT_LLVM_SYCL})
+endif()
+
 # FIXME this isn't always true
 target_compile_definitions(${ATH_BACKEND_LLVM} PRIVATE -DHAS_SPIRV=1)
 add_dependencies(${ATH_BACKEND_LLVM} ath_llvm_rt_images)
