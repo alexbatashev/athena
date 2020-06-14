@@ -33,13 +33,14 @@ class Event;
 class BackendAllocator;
 
 extern "C" struct ATH_BACKEND_LLVM_EXPORT DeviceContainer {
-  Device* devices;
+  Device** devices;
   size_t count;
 };
 
 class ATH_BACKEND_LLVM_EXPORT Device {
 public:
   Device() = default;
+  virtual ~Device() = default;
 
   enum class PartitionDomain { EQUALLY, BY_COUNT, NUMA };
   ///@{ \name Device information
@@ -64,8 +65,6 @@ public:
 
   virtual void addModule(ProgramDesc) = 0;
   virtual void linkModules() = 0;
-
-  virtual void consumeEvent(Event*) = 0;
 };
 } // namespace athena::backend::llvm
 
