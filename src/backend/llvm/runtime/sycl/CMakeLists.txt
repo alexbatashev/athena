@@ -1,5 +1,4 @@
 set(ATH_RT_LLVM_SYCL "AthenaLLVMSYCLRT" CACHE STRING "" FORCE)
-set(ATH_HAS_SYCL "true" CACHE STRING "" FORCE)
 
 include(AthenaSYCL)
 

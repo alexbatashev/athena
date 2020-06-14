@@ -259,9 +259,17 @@ struct ReleaseOpLoweringPattern
 
     auto callee = module.lookupSymbol<LLVM::LLVMFuncOp>("ath_release");
 
+    mlir::Value event;
+    if (operands.size() == 2) {
+      event = rewriter.create<LLVM::NullOp>(
+          op->getLoc(), LLVM::LLVMType::getInt8Ty(llvmDialect).getPointerTo());
+    } else {
+      event = operands[2];
+    }
+
     rewriter.create<LLVM::CallOp>(
         op->getLoc(), callee,
-        ValueRange{graphHandle, operands[0], operands[1]});
+        ValueRange{graphHandle, operands[0], operands[1], event});
     rewriter.eraseOp(op);
 
     return success();

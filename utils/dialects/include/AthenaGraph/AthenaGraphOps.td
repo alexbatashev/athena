@@ -224,16 +224,15 @@ def AthenaGraph_AddOp : AthenaGraph_Op<"add", [ComputationalOpInterface]> {
   let description = [{ TBD }];
 
   let arguments = (ins AnyTensor:$a, AnyType:$scaleA, AnyTensor:$b,
-                       AnyType:$scaleB, AnyType:$size, AnyTensor:$out);
+                       AnyType:$scaleB, AnyTensor:$out);
   let results = (outs AnyTensor);
   let builders = [OpBuilder<"OpBuilder& builder, OperationState& result, "
-                            "Value a, Value scaleA, Value b, Value scaleB, Value size, "
+                            "Value a, Value scaleA, Value b, Value scaleB, "
                             "Value out", [{
     result.addOperands(a);
     result.addOperands(scaleA);
     result.addOperands(b);
     result.addOperands(scaleB);
-    result.addOperands(size);
     result.addOperands(out);
     result.types.push_back(out.getType());
   }]>];
@@ -427,12 +426,11 @@ def AthenaGraph_FillOp : AthenaGraph_Op<"fill", [ComputationalOpInterface]> {
   let summary = "Fills tensor with value";
   let description = [{ TBD }];
 
-  let arguments = (ins AnyType:$pattern, AnyType:$size, AnyTensor:$out);
+  let arguments = (ins AnyType:$pattern, AnyTensor:$out);
   let results = (outs AnyTensor);
   let builders = [OpBuilder<"OpBuilder& builder, OperationState& result, "
-                            "Value pattern, Value size, Value out", [{
+                            "Value pattern, Value out", [{
     result.addOperands(pattern);
-    result.addOperands(size);
     result.addOperands(out);
     result.types.push_back(out.getType());
   }]>];

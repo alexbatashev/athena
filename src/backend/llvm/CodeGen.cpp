@@ -318,17 +318,16 @@ void populateCodeGenPatterns(athena::core::internal::Generator& generator,
   generator.registerFunctor<builtin::Return>(retFunctor);
 
   builtin_functor_t<builtin::Add> addFunctor = [&](GenValue a, GenValue scaleA,
-                                                   GenValue b, GenValue scaleB, GenValue size,
+                                                   GenValue b, GenValue scaleB, 
                                                    GenValue out) {
     auto aVal = a.value<MlirValueImpl>().value;
     auto scaleAVal = scaleA.value<MlirValueImpl>().value;
     auto bVal = b.value<MlirValueImpl>().value;
     auto scaleBVal = scaleB.value<MlirValueImpl>().value;
-    auto sizeVal = size.value<MlirValueImpl>().value;
     auto outVal = out.value<MlirValueImpl>().value;
 
     auto res = builder.create<mlir::ath_graph::AddOp>(
-        builder.getUnknownLoc(), aVal, scaleAVal, bVal, scaleBVal, sizeVal, outVal);
+        builder.getUnknownLoc(), aVal, scaleAVal, bVal, scaleBVal, outVal);
 
     return GenValue{std::make_unique<MlirValueImpl>(res)};
   };
@@ -429,14 +428,13 @@ void populateCodeGenPatterns(athena::core::internal::Generator& generator,
   };
   generator.registerFunctor<builtin::Sigmoid>(sigmoidFunctor);
 
-  builtin_functor_t<builtin::Fill> fillFunctor = [&](GenValue pattern, GenValue size,
+  builtin_functor_t<builtin::Fill> fillFunctor = [&](GenValue pattern, 
                                                      GenValue out) {
     auto patternVal = pattern.value<MlirValueImpl>().value;
-    auto sizeVal = size.value<MlirValueImpl>().value;
     auto outVal = out.value<MlirValueImpl>().value;
 
     auto res = builder.create<mlir::ath_graph::FillOp>(builder.getUnknownLoc(),
-                                                       patternVal, sizeVal, outVal);
+                                                       patternVal, outVal);
 
     return GenValue{std::make_unique<MlirValueImpl>(res)};
   };

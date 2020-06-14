@@ -4,7 +4,7 @@
 
 int main() {
   athena::backend::llvm::RuntimeDriver driver;
-  std::vector<athena::backend::llvm::Device*> devices = driver.getDeviceList();
+  auto devices = driver.getDeviceList();
 
   std::cout << "Total device count: " << devices.size() << "\n\n";
 

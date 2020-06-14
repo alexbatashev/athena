@@ -21,8 +21,7 @@ using namespace cl::sycl;
 
 extern "C" {
 ATH_RT_LLVM_EXPORT DeviceContainer getAvailableDevices() {
-  auto allDevices = device::get_devices(cl::sycl::info::device_type::gpu); 
-  // auto allDevices = device::get_devices(cl::sycl::info::device_type::all); 
+  auto allDevices = device::get_devices(cl::sycl::info::device_type::all);
   auto* syclDevices = new Device*[allDevices.size()];
 
   // todo only true for ComputeCpp
@@ -38,5 +37,9 @@ ATH_RT_LLVM_EXPORT DeviceContainer getAvailableDevices() {
   DeviceContainer deviceContainer{syclDevices, allDevices.size()};
   return deviceContainer;
 }
-}
+ATH_RT_LLVM_EXPORT void consumeDevice(Device* dev) { delete dev; }
 
+ATH_RT_LLVM_EXPORT void consumeContainer(DeviceContainer cont) {
+  delete[] cont.devices;
+}
+}

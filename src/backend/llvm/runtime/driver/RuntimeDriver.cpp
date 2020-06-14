@@ -29,7 +29,9 @@ RuntimeDriver::RuntimeDriver() {
     }
 
     void* consumeContPtr = dynLib.getAddressOfSymbol("consumeContainer");
-    auto consumeContFunc = reinterpret_cast<void (*)(Device*)>(consumeContPtr);
+    auto consumeContFunc =
+        reinterpret_cast<void (*)(DeviceContainer)>(consumeContPtr);
+    mRecyclers.emplace_back(externalDevices, consumeContFunc);
   }
 }
 
