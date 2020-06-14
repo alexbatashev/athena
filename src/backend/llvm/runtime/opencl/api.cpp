@@ -42,15 +42,22 @@ ATH_RT_LLVM_EXPORT DeviceContainer getAvailableDevices() {
     allDevices.insert(allDevices.end(), devices.begin(), devices.end());
   }
 
-  std::allocator<OpenCLDevice> allocator;
-  auto oclDevices = allocator.allocate(allDevices.size());
+  auto oclDevices = new Device*[allDevices.size()];
 
   int i = 0;
   for (auto device : allDevices) {
-    new (oclDevices + i++) OpenCLDevice(device);
+    oclDevices[i++] = new OpenCLDevice(device);
   }
 
   DeviceContainer deviceContainer{oclDevices, allDevices.size()};
   return deviceContainer;
+}
+
+ATH_RT_LLVM_EXPORT void consumeDevice(Device* dev) {
+  delete dev;
+}
+
+ATH_RT_LLVM_EXPORT void consumeContainer(DeviceContainer cont) {
+  delete [] cont.devices;
 }
 }
