@@ -22,9 +22,9 @@
 
 #include <athena/backend/llvm/runtime/LaunchCommand.h>
 
-template <int AllocT, typename T> class FillWrapper;
+template <int AllocT, typename T> class CopyWrapper;
 
-template <typename T> class FillWrapper<AllocatorType::buffer, T> {
+template <typename T> class CopyWrapper<AllocatorType::buffer, T> {
 public:
   auto operator()(athena::backend::llvm::SYCLDevice* device,
                   athena::backend::llvm::BackendAllocator& alloc,
@@ -35,23 +35,28 @@ public:
     auto q = device->getQueue().getNativeQueue();
     // todo assert on arguments
 
-    auto tensor = static_cast<TensorInfo*>(cmd.args[1].arg);
-    MemoryRecord record = tensorInfoToRecord(tensor);
+    auto srcTensor = static_cast<TensorInfo*>(cmd.args[0].arg);
+    MemoryRecord srcRecord = tensorInfoToRecord(srcTensor);
+    auto destTensor = static_cast<TensorInfo*>(cmd.args[1].arg);
+    MemoryRecord destRecord = tensorInfoToRecord(destTensor);
 
-    auto* buf = alloc.get<buffer<char, 1>>(record, *device);
-    buffer<float, 1> reintBuf =
-        buf->reinterpret<float, 1>(range<1>(buf->get_count() / 4));
-    T pattern = *static_cast<T*>(cmd.args[0].arg);
-    auto outEvt = q.submit([&reintBuf, pattern](handler& cgh) {
-      auto acc = reintBuf.get_access<access::mode::discard_write>(cgh);
-      cgh.fill(acc, pattern);
+    auto* bufSrc = alloc.get<buffer<char, 1>>(srcRecord, *device);
+    auto* bufDst = alloc.get<buffer<char, 1>>(destRecord, *device);
+    buffer<T, 1> src =
+        bufSrc->template reinterpret<T, 1>(range<1>(bufSrc->get_count() / sizeof(T)));
+    buffer<T, 1> dest =
+        bufDst->template reinterpret<T, 1>(range<1>(bufDst->get_count() / sizeof(T)));
+    auto outEvt = q.submit([&src, &dest](handler& cgh) {
+      auto srcAcc = src.get_access<access::mode::read>(cgh);
+      auto dstAcc = dest.get_access<access::mode::discard_write>(cgh);
+      cgh.fill(srcAcc, dstAcc);
     });
 
     return new SYCLEvent(device, outEvt);
   }
 };
 
-template <typename T> class FillWrapper<AllocatorType::usm, T> {
+template <typename T> class CopyWrapper<AllocatorType::usm, T> {
 public:
   auto operator()(athena::backend::llvm::SYCLDevice* device,
                   athena::backend::llvm::BackendAllocator& alloc,
@@ -62,13 +67,16 @@ public:
     auto q = device->getQueue().getNativeQueue();
     // todo assert on arguments
 
-    auto tensor = static_cast<TensorInfo*>(cmd.args[1].arg);
-    MemoryRecord record = tensorInfoToRecord(tensor);
+    auto srcTensor = static_cast<TensorInfo*>(cmd.args[0].arg);
+    MemoryRecord srcRecord = tensorInfoToRecord(srcTensor);
+    auto destTensor = static_cast<TensorInfo*>(cmd.args[1].arg);
+    MemoryRecord destRecord = tensorInfoToRecord(destTensor);
 
-    T* buf = alloc.get<T>(record, *device);
-    T pattern = *static_cast<T*>(cmd.args[0].arg);
-    auto outEvt = q.fill(buf, pattern, record.allocationSize / sizeof(T));
+    T* src = alloc.get<T>(srcRecord, *device);
+    T* dest = alloc.get<T>(destRecord, *device);
+    auto outEvt = q.memcpy(dest, src, srcRecord.allocationSize / sizeof(T));
 
     return new SYCLEvent(device, outEvt);
   }
 };
+

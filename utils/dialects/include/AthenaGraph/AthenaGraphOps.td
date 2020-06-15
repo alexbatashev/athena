@@ -247,13 +247,11 @@ def AthenaGraph_CopyOp : AthenaGraph_Op<"copy", [ComputationalOpInterface]> {
   let summary = "Element-wise copy operation";
   let description = [{ TBD }];
 
-  let arguments = (ins AnyTensor:$input, AnyType:$size, AnyTensor:$out);
+  let arguments = (ins AnyTensor:$input, AnyTensor:$out);
   let results = (outs AnyTensor);
   let builders = [OpBuilder<"OpBuilder& builder, OperationState& result, "
-                            "Value input, Value size, "
-                            "Value out", [{
+                            "Value input, Value out", [{
     result.addOperands(input);
-    result.addOperands(size);
     result.addOperands(out);
     result.types.push_back(out.getType());
   }]>];
@@ -272,11 +270,9 @@ def AthenaGraph_DivideOp : AthenaGraph_Op<"divide", [ComputationalOpInterface]> 
   AnyTensor:$out);
   let results = (outs AnyTensor);
   let builders = [OpBuilder<"OpBuilder& builder, OperationState& result, "
-                            "Value numerator, Value denominator, Value size, "
-                            "Value out", [{
+                            "Value numerator, Value denominator, Value out", [{
     result.addOperands(numerator);
     result.addOperands(denominator);
-    result.addOperands(size);
     result.addOperands(out);
     result.types.push_back(out.getType());
   }]>];
@@ -414,9 +410,8 @@ def AthenaGraph_TransposeOp : AthenaGraph_Op<"transpose", [Computational]> {
   let arguments = (ins AnyTensor:$a, AnyTensor:$size, AnyTensor:$res);
   let results = (outs AnyTensor);
   let builders = [OpBuilder<"OpBuilder& builder, OperationState& result, "
-                            "Value a, Value size, Value out", [{
+                            "Value a, Value out", [{
     result.addOperands(a);
-    result.addOperands(size);
     result.addOperands(out);
   result.types.push_back(out.getType());
   }]>];

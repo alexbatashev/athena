@@ -21,6 +21,8 @@
 
 #include "kernels/AddNaive.hpp"
 #include "kernels/Fill.hpp"
+#include "kernels/Copy.hpp"
+#include "kernels/Divide.hpp"
 
 using namespace cl::sycl;
 
@@ -52,7 +54,9 @@ void SYCLDevice::consumeEvent(Event* evt) {
 void SYCLDevice::populateKernelMap() {
   if (mUsesUSM) {
     mKernelMap["ffill"] = FillWrapper<AllocatorType::usm, float>{};
+    mKernelMap["fcopy"] = CopyWrapper<AllocatorType::usm, float>{};
     mKernelMap["fadd"] = AddKernelWrapper<AllocatorType::usm, float>{};
+    mKernelMap["fdivide"] = DivideKernelWrapper<AllocatorType::usm, float>{};
   }
 }
 } // namespace athena::backend::llvm

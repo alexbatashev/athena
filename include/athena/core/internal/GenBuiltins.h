@@ -92,11 +92,11 @@ template <> struct builtin_functor<builtin::Add> {
 };
 
 template <> struct builtin_functor<builtin::Copy> {
-  using type = std::function<GenValue(GenValue, GenValue, GenValue)>;
+  using type = std::function<GenValue(GenValue, GenValue)>;
 };
 
 template <> struct builtin_functor<builtin::Divide> {
-  using type = std::function<GenValue(GenValue, GenValue, GenValue, GenValue)>;
+  using type = std::function<GenValue(GenValue, GenValue, GenValue)>;
 };
 
 template <> struct builtin_functor<builtin::LogLoss> {
@@ -130,7 +130,7 @@ template <> struct builtin_functor<builtin::Slice> {
 };
 
 template <> struct builtin_functor<builtin::Transpose> {
-  using type = std::function<GenValue(GenValue, GenValue, GenValue)>;
+  using type = std::function<GenValue(GenValue, GenValue)>;
 };
 
 template <builtin B>
