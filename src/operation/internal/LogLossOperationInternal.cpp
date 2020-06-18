@@ -59,13 +59,11 @@ core::internal::GenValue LogLossOperationInternal::gen(
   GenValue out = parentNode.getResult();
   resultMap[resultTensor->getPublicIndex()] = out;
 
-  GenValue size = generator.createConstant(static_cast<uint64_t>(tensors.at(0)->getShapeView().getTotalSize()));
-
   generator.setInsertionPoint(parentNode);
 
   lockTensors(generator, argMap, resultMap);
 
-  GenValue res = generator.callBuiltin<builtin::LogLoss>(predicted, groundTruth, size, out);
+  GenValue res = generator.callBuiltin<builtin::LogLoss>(predicted, groundTruth, out);
 
   releaseTensors(generator, argMap, resultMap);
   return res;

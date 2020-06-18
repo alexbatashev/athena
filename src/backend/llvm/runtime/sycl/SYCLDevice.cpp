@@ -23,6 +23,7 @@
 #include "kernels/Fill.hpp"
 #include "kernels/Copy.hpp"
 #include "kernels/Divide.hpp"
+#include "kernels/LogLoss.hpp"
 
 using namespace cl::sycl;
 
@@ -57,6 +58,7 @@ void SYCLDevice::populateKernelMap() {
     mKernelMap["fcopy"] = CopyWrapper<AllocatorType::usm, float>{};
     mKernelMap["fadd"] = AddKernelWrapper<AllocatorType::usm, float>{};
     mKernelMap["fdivide"] = DivideKernelWrapper<AllocatorType::usm, float>{};
+    // mKernelMap["flogloss"] = 
   }
 }
 } // namespace athena::backend::llvm

@@ -291,11 +291,9 @@ def AthenaGraph_LogLossOp : AthenaGraph_Op<"logloss", [ComputationalOpInterface]
   AnyTensor:$out);
   let results = (outs AnyTensor);
   let builders = [OpBuilder<"OpBuilder& builder, OperationState& result, "
-                            "Value predicted, Value groundTruth, Value size, "
-                            "Value out", [{
+                            "Value predicted, Value groundTruth, Value out", [{
     result.addOperands(predicted);
     result.addOperands(groundTruth);
-    result.addOperands(size);
     result.addOperands(out);
     result.types.push_back(out.getType());
   }]>];

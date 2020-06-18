@@ -100,7 +100,7 @@ template <> struct builtin_functor<builtin::Divide> {
 };
 
 template <> struct builtin_functor<builtin::LogLoss> {
-  using type = std::function<GenValue(GenValue, GenValue, GenValue, GenValue)>;
+  using type = std::function<GenValue(GenValue, GenValue, GenValue)>;
 };
 
 template <> struct builtin_functor<builtin::MatMul> {

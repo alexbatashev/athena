@@ -361,15 +361,13 @@ void populateCodeGenPatterns(athena::core::internal::Generator& generator,
 
   builtin_functor_t<builtin::LogLoss> logLossFunctor = [&](GenValue predicted,
                                                            GenValue groundTruth,
-                                                           GenValue size,
                                                            GenValue out) {
     auto predictedVal = predicted.value<MlirValueImpl>().value;
     auto groundTruthVal = groundTruth.value<MlirValueImpl>().value;
-    auto sizeVal = size.value<MlirValueImpl>().value;
     auto outVal = out.value<MlirValueImpl>().value;
 
     auto res = builder.create<mlir::ath_graph::LogLossOp>(
-        builder.getUnknownLoc(), predictedVal, groundTruthVal, sizeVal, outVal);
+        builder.getUnknownLoc(), predictedVal, groundTruthVal, outVal);
 
     return GenValue{std::make_unique<MlirValueImpl>(res)};
   };
