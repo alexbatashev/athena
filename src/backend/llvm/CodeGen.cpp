@@ -359,81 +359,68 @@ void populateCodeGenPatterns(athena::core::internal::Generator& generator,
       };
   generator.registerFunctor<builtin::Divide>(divideFunctor);
 
-  builtin_functor_t<builtin::LogLoss> logLossFunctor = [&](GenValue predicted,
-                                                           GenValue groundTruth,
-                                                           GenValue out) {
-    auto predictedVal = predicted.value<MlirValueImpl>().value;
-    auto groundTruthVal = groundTruth.value<MlirValueImpl>().value;
-    auto outVal = out.value<MlirValueImpl>().value;
+  builtin_functor_t<builtin::LogLoss> logLossFunctor =
+      [&](GenValue predicted, GenValue groundTruth, GenValue out) {
+        auto predictedVal = predicted.value<MlirValueImpl>().value;
+        auto groundTruthVal = groundTruth.value<MlirValueImpl>().value;
+        auto outVal = out.value<MlirValueImpl>().value;
 
-    auto res = builder.create<mlir::ath_graph::LogLossOp>(
-        builder.getUnknownLoc(), predictedVal, groundTruthVal, outVal);
+        auto res = builder.create<mlir::ath_graph::LogLossOp>(
+            builder.getUnknownLoc(), predictedVal, groundTruthVal, outVal);
 
-    return GenValue{std::make_unique<MlirValueImpl>(res)};
-  };
+        return GenValue{std::make_unique<MlirValueImpl>(res)};
+      };
   generator.registerFunctor<builtin::LogLoss>(logLossFunctor);
 
   builtin_functor_t<builtin::MatMul> matmulFunctor =
-      [&](GenValue transLeft, GenValue transRight, GenValue m, GenValue n,
-          GenValue k, GenValue left, GenValue right, GenValue out) {
-        auto transLeftVal = transLeft.value<MlirValueImpl>().value;
-        auto transRightVal = transRight.value<MlirValueImpl>().value;
-        auto mVal = m.value<MlirValueImpl>().value;
-        auto nVal = n.value<MlirValueImpl>().value;
-        auto kVal = k.value<MlirValueImpl>().value;
+      [&](GenValue left, GenValue right, GenValue out, bool transpLeft,
+          bool transpRight) {
         auto leftVal = left.value<MlirValueImpl>().value;
         auto rightVal = right.value<MlirValueImpl>().value;
         auto outVal = out.value<MlirValueImpl>().value;
 
         auto res = builder.create<mlir::ath_graph::MatMulOp>(
-            builder.getUnknownLoc(), outVal.getType(), transLeftVal,
-            transRightVal, mVal, nVal, kVal, leftVal, rightVal, outVal);
+            builder.getUnknownLoc(), outVal.getType(), leftVal, rightVal,
+            outVal, transpLeft, transpRight);
 
         return GenValue{std::make_unique<MlirValueImpl>(res)};
       };
   generator.registerFunctor<builtin::MatMul>(matmulFunctor);
 
-  builtin_functor_t<builtin::Mul> mulFunctor =
-      [&](GenValue a, GenValue b, GenValue size, GenValue out) {
-        auto aVal = a.value<MlirValueImpl>().value;
-        auto bVal = b.value<MlirValueImpl>().value;
-        auto sizeVal = size.value<MlirValueImpl>().value;
-        auto outVal = out.value<MlirValueImpl>().value;
+  builtin_functor_t<builtin::Mul> mulFunctor = [&](GenValue a, GenValue b,
+                                                   GenValue out) {
+    auto aVal = a.value<MlirValueImpl>().value;
+    auto bVal = b.value<MlirValueImpl>().value;
+    auto outVal = out.value<MlirValueImpl>().value;
 
-        auto res = builder.create<mlir::ath_graph::MulOp>(
-            builder.getUnknownLoc(), aVal, bVal, sizeVal, outVal);
-        return GenValue{std::make_unique<MlirValueImpl>(res)};
-      };
+    auto res = builder.create<mlir::ath_graph::MulOp>(builder.getUnknownLoc(),
+                                                      aVal, bVal, outVal);
+    return GenValue{std::make_unique<MlirValueImpl>(res)};
+  };
   generator.registerFunctor<builtin::Mul>(mulFunctor);
 
   builtin_functor_t<builtin::MulConcat> mulConcatFunctor =
-      [&](GenValue gradient, GenValue gradientSize, GenValue localDerivative,
-          GenValue localDerivativeSize, GenValue out) {
+      [&](GenValue gradient, GenValue localDerivative, GenValue out) {
         auto gradientVal = gradient.value<MlirValueImpl>().value;
-        auto gradientSizeVal = gradientSize.value<MlirValueImpl>().value;
         auto localDerivativeVal = localDerivative.value<MlirValueImpl>().value;
-        auto localDerivativeSizeVal =
-            localDerivativeSize.value<MlirValueImpl>().value;
         auto outVal = out.value<MlirValueImpl>().value;
 
         auto res = builder.create<mlir::ath_graph::MulConcatOp>(
-            builder.getUnknownLoc(), gradientVal, gradientSizeVal,
-            localDerivativeVal, localDerivativeSizeVal, outVal);
+            builder.getUnknownLoc(), gradientVal, localDerivativeVal, outVal);
         return GenValue{std::make_unique<MlirValueImpl>(res)};
       };
   generator.registerFunctor<builtin::MulConcat>(mulConcatFunctor);
 
-  builtin_functor_t<builtin::Sigmoid> sigmoidFunctor =
-      [&](GenValue input, GenValue size, GenValue out) {
-        auto inputVal = input.value<MlirValueImpl>().value;
-        auto sizeVal = size.value<MlirValueImpl>().value;
-        auto outVal = out.value<MlirValueImpl>().value;
+  builtin_functor_t<builtin::Sigmoid> sigmoidFunctor = [&](GenValue input,
+                                                           GenValue out) {
+    auto inputVal = input.value<MlirValueImpl>().value;
+    auto outVal = out.value<MlirValueImpl>().value;
 
-        auto res = builder.create<mlir::ath_graph::SigmoidOp>(
-            builder.getUnknownLoc(), inputVal, sizeVal, outVal);
+    auto res = builder.create<mlir::ath_graph::SigmoidOp>(
+        builder.getUnknownLoc(), inputVal, outVal);
 
-        return GenValue{std::make_unique<MlirValueImpl>(res)};
-      };
+    return GenValue{std::make_unique<MlirValueImpl>(res)};
+  };
   generator.registerFunctor<builtin::Sigmoid>(sigmoidFunctor);
 
   builtin_functor_t<builtin::Fill> fillFunctor = [&](GenValue pattern,
@@ -459,15 +446,15 @@ void populateCodeGenPatterns(athena::core::internal::Generator& generator,
   };
   generator.registerFunctor<builtin::Slice>(sliceFunctor);
 
-  builtin_functor_t<builtin::Transpose> transposeFunctor =
-      [&](GenValue tensor, GenValue out) {
-        auto tensorVal = tensor.value<MlirValueImpl>().value;
-        auto outVal = out.value<MlirValueImpl>().value;
+  builtin_functor_t<builtin::Transpose> transposeFunctor = [&](GenValue tensor,
+                                                               GenValue out) {
+    auto tensorVal = tensor.value<MlirValueImpl>().value;
+    auto outVal = out.value<MlirValueImpl>().value;
 
-        auto res = builder.create<mlir::ath_graph::TransposeOp>(
-            builder.getUnknownLoc(), tensorVal, outVal);
-        return GenValue{std::make_unique<MlirValueImpl>(res)};
-      };
+    auto res = builder.create<mlir::ath_graph::TransposeOp>(
+        builder.getUnknownLoc(), tensorVal, outVal);
+    return GenValue{std::make_unique<MlirValueImpl>(res)};
+  };
   generator.registerFunctor<builtin::Transpose>(transposeFunctor);
 }
 } // namespace athena::backend::llvm

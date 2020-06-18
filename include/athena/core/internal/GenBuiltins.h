@@ -105,20 +105,20 @@ template <> struct builtin_functor<builtin::LogLoss> {
 
 template <> struct builtin_functor<builtin::MatMul> {
   using type =
-  std::function<GenValue(GenValue, GenValue, GenValue, GenValue, GenValue, GenValue, GenValue, GenValue)>;
+  std::function<GenValue(GenValue, GenValue, GenValue, bool, bool)>;
 };
 
 template <> struct builtin_functor<builtin::Mul> {
-  using type = std::function<GenValue(GenValue, GenValue, GenValue, GenValue)>;
+  using type = std::function<GenValue(GenValue, GenValue, GenValue)>;
 };
 
 template <> struct builtin_functor<builtin::MulConcat> {
-  using type = std::function<GenValue(GenValue, GenValue, GenValue, GenValue, GenValue)>;
+  using type = std::function<GenValue(GenValue, GenValue, GenValue)>;
 };
 
 
 template <> struct builtin_functor<builtin::Sigmoid> {
-  using type = std::function<GenValue(GenValue, GenValue, GenValue)>;
+  using type = std::function<GenValue(GenValue, GenValue)>;
 };
 
 template <> struct builtin_functor<builtin::Fill> {

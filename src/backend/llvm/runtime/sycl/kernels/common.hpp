@@ -42,9 +42,13 @@ public:
 
   auto operator[](size_t idx) -> T& { return mPointer[idx]; }
 
-  cl::sycl::global_ptr<T> get_pointer() {
+  auto get_pointer() -> cl::sycl::global_ptr<T> {
     return cl::sycl::global_ptr<T>(mPointer);
   }
+
+  auto get_range() -> const cl::sycl::range<Dims>& {
+    return mRange;
+  } 
 };
 
 template <int Type, typename T, int Dims> struct read_accessor {};

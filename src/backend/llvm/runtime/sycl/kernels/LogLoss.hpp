@@ -71,7 +71,7 @@ public:
       auto aAcc = read_accessor_t<AllocatorType::usm, T, 1>(
           predBuf, range<1>(predictedRecord.allocationSize / sizeof(T)));
       auto bAcc = read_accessor_t<AllocatorType::usm, T, 1>(
-          denBuf, range<1>(groundTruthRecord.allocationSize / sizeof(T)));
+          truthBuf, range<1>(groundTruthRecord.allocationSize / sizeof(T)));
       auto cAcc = discard_write_accessor_t<AllocatorType::usm, T, 1>(
           outBuf, range<1>(outRecord.allocationSize / sizeof(T)));
       LogLossKernel<AllocatorType::usm, T> kernel(aAcc, bAcc, cAcc);

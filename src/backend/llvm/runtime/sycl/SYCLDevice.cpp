@@ -20,10 +20,14 @@
 #include <athena/backend/llvm/runtime/TensorInfo.h>
 
 #include "kernels/AddNaive.hpp"
-#include "kernels/Fill.hpp"
 #include "kernels/Copy.hpp"
 #include "kernels/Divide.hpp"
+#include "kernels/Fill.hpp"
 #include "kernels/LogLoss.hpp"
+#include "kernels/MatMul.hpp"
+#include "kernels/Mul.hpp"
+#include "kernels/MulConcat.hpp"
+#include "kernels/Sigmoid.hpp"
 
 using namespace cl::sycl;
 
@@ -58,7 +62,19 @@ void SYCLDevice::populateKernelMap() {
     mKernelMap["fcopy"] = CopyWrapper<AllocatorType::usm, float>{};
     mKernelMap["fadd"] = AddKernelWrapper<AllocatorType::usm, float>{};
     mKernelMap["fdivide"] = DivideKernelWrapper<AllocatorType::usm, float>{};
-    // mKernelMap["flogloss"] = 
+    mKernelMap["flogloss"] = LogLossWrapper<AllocatorType::usm, float>{};
+    mKernelMap["fmul"] = MulKernelWrapper<AllocatorType::usm, float>{};
+    mKernelMap["fmulconcat"] =
+        MulConcatKernelWrapper<AllocatorType::usm, float>{};
+    mKernelMap["fsigmoid"] = SigmoidKernelWrapper<AllocatorType::usm, float>{};
+    mKernelMap["fmatmul_f_f"] =
+        MatMulKernelWrapper<AllocatorType::usm, float, false, false>{};
+    mKernelMap["fmatmul_f_t"] =
+        MatMulKernelWrapper<AllocatorType::usm, float, false, true>{};
+    mKernelMap["fmatmul_t_f"] =
+        MatMulKernelWrapper<AllocatorType::usm, float, true, false>{};
+    mKernelMap["fmatmul_t_t"] =
+        MatMulKernelWrapper<AllocatorType::usm, float, true, true>{};
   }
 }
 } // namespace athena::backend::llvm
