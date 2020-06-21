@@ -11,22 +11,15 @@
 // the License.
 //===----------------------------------------------------------------------===//
 
-#ifndef ATHENA_ATHENAGRAPHOPS_H
-#define ATHENA_ATHENAGRAPHOPS_H
+#include "Compute/ComputeDialect.h"
+#include "Compute/ComputeOps.h"
 
-#include "AthenaGraph/ComputationalOpInterface.h"
+using namespace mlir;
+using namespace mlir::compute;
 
-#include "mlir/IR/Dialect.h"
-#include "mlir/IR/FunctionSupport.h"
-#include "mlir/IR/OpDefinition.h"
-#include "mlir/IR/StandardTypes.h"
-#include "mlir/Interfaces/CallInterfaces.h"
-#include "mlir/Interfaces/ControlFlowInterfaces.h"
-#include "mlir/Interfaces/SideEffectInterfaces.h"
-
-namespace mlir::ath_graph {
-#define GET_OP_CLASSES
-#include "AthenaGraph/AthenaGraphOps.h.inc"
-} // namespace mlir::ath_graph
-
-#endif // ATHENA_ATHENAGRAPHOPS_H
+ComputeDialect::ComputeDialect(::mlir::MLIRContext *context) : ::mlir::Dialect(getDialectNamespace(), context) {
+  addOperations<
+#define GET_OP_LIST
+#include "Compute/ComputeOps.cpp.inc"
+      >();
+}

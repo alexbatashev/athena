@@ -11,10 +11,8 @@
 // the License.
 //===----------------------------------------------------------------------===//
 
-#ifndef ATHENA_ATHENAGRAPHOPS_H
-#define ATHENA_ATHENAGRAPHOPS_H
-
-#include "AthenaGraph/ComputationalOpInterface.h"
+#ifndef CLANG_EXTRAS_COMPUTEOPS_H
+#define CLANG_EXTRAS_COMPUTEOPS_H
 
 #include "mlir/IR/Dialect.h"
 #include "mlir/IR/FunctionSupport.h"
@@ -24,9 +22,9 @@
 #include "mlir/Interfaces/ControlFlowInterfaces.h"
 #include "mlir/Interfaces/SideEffectInterfaces.h"
 
-namespace mlir::ath_graph {
+namespace mlir::compute {
 #define GET_OP_CLASSES
-#include "AthenaGraph/AthenaGraphOps.h.inc"
-} // namespace mlir::ath_graph
+#include "Compute/ComputeOps.h.inc"
+} // namespace mlir::clang
 
-#endif // ATHENA_ATHENAGRAPHOPS_H
+#endif // CLANG_EXTRAS_COMPUTEOPS_H
