@@ -33,7 +33,7 @@ public:
   void operator()(cl::sycl::id<1> id) {
     T eps = 1e-5;
     out[id] = -groundTruth[id] * cl::sycl::log(predicted[id] + eps) -
-              (1 - groundTruth[id]) * log(1 - predicted[id] + eps);
+              (1 - groundTruth[id]) * cl::sycl::log(1 - predicted[id] + eps);
   }
 
 private:

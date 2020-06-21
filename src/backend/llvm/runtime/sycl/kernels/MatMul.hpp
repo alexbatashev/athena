@@ -25,8 +25,8 @@
 template <int AllocT, typename T, bool TranspLeft, bool TranspRight>
 class MatMulKernel {
 public:
-  using ReadAcc = read_accessor_t<AllocT, T, 1>;
-  using WriteAcc = discard_write_accessor_t<AllocT, T, 1>;
+  using ReadAcc = read_accessor_t<AllocT, T, 2>;
+  using WriteAcc = discard_write_accessor_t<AllocT, T, 2>;
 
   MatMulKernel(ReadAcc a, ReadAcc b, WriteAcc c) : left(a), right(b), out(c) {}
 
@@ -51,7 +51,8 @@ public:
         rightRow = k;
         rightCol = id[1];
       }
-      acc = left[leftRow][leftCol] * right[rightRow][rightCol];
+      acc = left[cl::sycl::id<2>{leftRow, leftCol}] *
+            right[cl::sycl::id<2>{rightRow, rightCol}];
     }
     out[id] = acc;
   }
