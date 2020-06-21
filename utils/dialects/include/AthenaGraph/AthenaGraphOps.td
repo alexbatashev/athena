@@ -332,7 +332,7 @@ def AthenaGraph_MatMulOp : AthenaGraph_Op<"matmul", [ComputationalOpInterface]> 
       } else if (transpose_left()) {
         return "fmatmul_t_f";
       } else {
-        return "fmatmtul_f_f";
+        return "fmatmul_f_f";
       }
     }
   }];

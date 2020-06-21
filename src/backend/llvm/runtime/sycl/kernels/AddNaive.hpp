@@ -66,9 +66,9 @@ public:
     auto bBuf = allocator.get<buffer<char, 1>>(bRecord, *device);
     auto cBuf = allocator.get<buffer<char, 1>>(cRecord, *device);
 
-    buffer<T, 1> aTBuf = aBuf->reinterpret<T>(range<1>(aTensor->shape[0]));
-    buffer<T, 1> bTBuf = bBuf->reinterpret<T>(range<1>(bTensor->shape[0]));
-    buffer<T, 1> cTBuf = cBuf->reinterpret<T>(range<1>(cTensor->shape[0]));
+    buffer<T, 1> aTBuf = aBuf->reinterpret<T>(range<1>(aRecord.allocationSize / sizeof(T)));
+    buffer<T, 1> bTBuf = bBuf->reinterpret<T>(range<1>(bRecord.allocationSize / sizeof(T)));
+    buffer<T, 1> cTBuf = cBuf->reinterpret<T>(range<1>(cRecord.allocationSize / sizeof(T)));
 
     auto q = device->getQueue().getNativeQueue();
 
@@ -79,7 +79,7 @@ public:
       AddKernel<AllocatorType::buffer, T> kernel(aAcc, scaleA, bAcc, scaleB,
                                                  cAcc);
 
-      cgh.parallel_for(cBuf->get_range(), kernel);
+      cgh.parallel_for(cTBuf.get_range(), kernel);
     });
 
     return new SYCLEvent(device, outEvt);

@@ -104,7 +104,7 @@ public:
       MatMulKernel<AllocatorType::buffer, T, TranspLeft, TranspRight> kernel(
           aAcc, bAcc, cAcc);
 
-      cgh.parallel_for(cBuf->get_range(), kernel);
+      cgh.parallel_for(cTBuf.get_range(), kernel);
     });
 
     return new SYCLEvent(device, outEvt);

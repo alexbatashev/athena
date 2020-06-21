@@ -43,8 +43,8 @@ public:
         buf->reinterpret<float, 1>(range<1>(buf->get_count() / 4));
     T pattern = *static_cast<T*>(cmd.args[0].arg);
     auto outEvt = q.submit([&reintBuf, pattern](handler& cgh) {
-      auto acc = reintBuf.get_access<access::mode::discard_write>(cgh);
-      cgh.fill(acc, pattern);
+      auto acc = reintBuf.template get_access<access::mode::discard_write>(cgh);
+      cgh.template fill(acc, pattern);
     });
 
     return new SYCLEvent(device, outEvt);

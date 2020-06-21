@@ -40,11 +40,13 @@ auto SYCLDevice::launch(BackendAllocator& allocator, LaunchCommand& cmd,
     //  non-blocking call. In future runtimes will need a unified event system.
     dependency->wait();
   }
+  std::cerr << cmd.kernelName << std::endl;
   if (mKernelMap.count(cmd.kernelName)) {
     return mKernelMap.at(cmd.kernelName)(this, allocator, cmd, dependency);
   }
 
   // todo implement interoperability kernel launch
+  throw std::runtime_error("Not implemented");
   return nullptr;
 }
 
@@ -75,6 +77,25 @@ void SYCLDevice::populateKernelMap() {
         MatMulKernelWrapper<AllocatorType::usm, float, true, false>{};
     mKernelMap["fmatmul_t_t"] =
         MatMulKernelWrapper<AllocatorType::usm, float, true, true>{};
+  } else {
+    mKernelMap["ffill"] = FillWrapper<AllocatorType::buffer, float>{};
+    mKernelMap["fcopy"] = CopyWrapper<AllocatorType::buffer, float>{};
+    mKernelMap["fadd"] = AddKernelWrapper<AllocatorType::buffer, float>{};
+    mKernelMap["fdivide"] = DivideKernelWrapper<AllocatorType::buffer, float>{};
+    // mKernelMap["flogloss"] = LogLossWrapper<AllocatorType::buffer, float>{};
+    mKernelMap["fmul"] = MulKernelWrapper<AllocatorType::buffer, float>{};
+    mKernelMap["fmulconcat"] =
+        MulConcatKernelWrapper<AllocatorType::buffer, float>{};
+    mKernelMap["fsigmoid"] = SigmoidKernelWrapper<AllocatorType::buffer, float>{};
+    mKernelMap["fmatmul_f_f"] =
+        MatMulKernelWrapper<AllocatorType::buffer, float, false, false>{};
+    mKernelMap["fmatmul_f_t"] =
+        MatMulKernelWrapper<AllocatorType::buffer, float, false, true>{};
+    mKernelMap["fmatmul_t_f"] =
+        MatMulKernelWrapper<AllocatorType::buffer, float, true, false>{};
+    mKernelMap["fmatmul_t_t"] =
+        MatMulKernelWrapper<AllocatorType::buffer, float, true, true>{};
+
   }
 }
 } // namespace athena::backend::llvm

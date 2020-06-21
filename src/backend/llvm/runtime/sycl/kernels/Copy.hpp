@@ -47,9 +47,9 @@ public:
     buffer<T, 1> dest =
         bufDst->template reinterpret<T, 1>(range<1>(bufDst->get_count() / sizeof(T)));
     auto outEvt = q.submit([&src, &dest](handler& cgh) {
-      auto srcAcc = src.get_access<access::mode::read>(cgh);
-      auto dstAcc = dest.get_access<access::mode::discard_write>(cgh);
-      cgh.fill(srcAcc, dstAcc);
+      auto srcAcc = src.template get_access<access::mode::read>(cgh);
+      auto dstAcc = dest.template get_access<access::mode::discard_write>(cgh);
+      cgh.copy(srcAcc, dstAcc);
     });
 
     return new SYCLEvent(device, outEvt);

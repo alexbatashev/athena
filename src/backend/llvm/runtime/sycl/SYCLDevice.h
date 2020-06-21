@@ -42,6 +42,7 @@ public:
     } else {
       mAllocator = std::make_shared<BufferAllocator>(
           mQueue->getNativeQueue().get_context());
+      mUsesUSM = false;
     }
 
     populateKernelMap();
