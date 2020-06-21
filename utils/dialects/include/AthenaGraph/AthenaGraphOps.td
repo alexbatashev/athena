@@ -325,18 +325,15 @@ def AthenaGraph_MatMulOp : AthenaGraph_Op<"matmul", [ComputationalOpInterface]> 
   }]>];
   let extraClassDeclaration = [{
     llvm::StringRef getKernelName() {
-      std::string p1, p2;
-      if (transpose_left()) {
-        p1 = "_t";
+      if (transpose_right() && transpose_left()) {
+        return "fmatmul_t_t";
+      } else if (transpose_right()) {
+        return "fmatmul_f_t";
+      } else if (transpose_left()) {
+        return "fmatmul_t_f";
       } else {
-        p1 = "_f";
+        return "fmatmtul_f_f";
       }
-      if (transpose_right()) {
-        p2 = "_t";
-      } else {
-        p2 = "_f";
-      }
-      return "fmatmul" + p1 + p2;
     }
   }];
 }

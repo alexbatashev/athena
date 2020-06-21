@@ -24,7 +24,8 @@ void BufferAllocator::allocate(MemoryRecord record) {
 
   // todo re-use released buffers for new allocations.
 
-  mBuffers.insert({record, buffer<char, 1>(range<1>(record.allocationSize))});
+  mBuffers.insert({record, std::make_unique<buffer<char, 1>>(
+                               range<1>(record.allocationSize))});
 
   mTags[record] = 1;
 }
@@ -57,7 +58,7 @@ void athena::backend::llvm::BufferAllocator::release(MemoryRecord record) {
 void* athena::backend::llvm::BufferAllocator::getPtr(
     llvm::MemoryRecord record) {
   if (mBuffers.count(record)) {
-    return &mBuffers[record];
+    return mBuffers[record].get();
   }
   return nullptr;
 }

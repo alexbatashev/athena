@@ -24,10 +24,11 @@ ATH_RT_LLVM_EXPORT DeviceContainer getAvailableDevices() {
   auto allDevices = device::get_devices(cl::sycl::info::device_type::all);
   auto* syclDevices = new Device*[allDevices.size()];
 
-  // todo only true for ComputeCpp
+  #ifdef USES_COMPUTECPP
   if (allDevices.size() > 1) {
     allDevices.erase(allDevices.begin()); // remove host device
   }
+  #endif
 
   int i = 0;
   for (const auto& device : allDevices) {

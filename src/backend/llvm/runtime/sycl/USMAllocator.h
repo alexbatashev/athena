@@ -29,9 +29,12 @@
 namespace athena::backend::llvm {
 class USMAllocator : public AllocatorLayerBase {
 private:
+#ifdef USES_COMPUTECPP
   cl::sycl::experimental::usm_allocator<unsigned char,
                                         sycl::experimental::usm::alloc::device>
-      mAllocator;
+#endif
+      cl::sycl::usm_allocator<unsigned char, sycl::usm::alloc::device>
+          mAllocator;
   MemoryOffloadCallbackT mOffloadCallback;
   std::unordered_map<MemoryRecord, void*> mMemMap;
   std::unordered_set<MemoryRecord> mLockedAllocations;

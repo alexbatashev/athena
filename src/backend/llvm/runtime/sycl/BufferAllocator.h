@@ -42,7 +42,8 @@ private:
 
   cl::sycl::context mContext;
   MemoryOffloadCallbackT mCallback;
-  std::unordered_map<MemoryRecord, cl::sycl::buffer<char, 1>> mBuffers;
+  std::unordered_map<MemoryRecord, std::unique_ptr<cl::sycl::buffer<char, 1>>>
+      mBuffers;
   std::unordered_set<MemoryRecord> mLockedAllocations;
   std::unordered_set<MemoryRecord> mReleasedAllocations;
   std::unordered_map<MemoryRecord, int> mTags;

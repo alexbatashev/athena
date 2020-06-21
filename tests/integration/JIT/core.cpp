@@ -123,7 +123,7 @@ std::vector<T> combineOperation(T alpha, const std::vector<T>& left, T beta,
   return res;
 }
 
-TEST(JITIntegration, DISABLED_CombineOperationSample) {
+TEST(JITIntegration, CombineOperationSample) {
   Context context;
 
   auto graph = context.create<Graph>("mainGraph");
@@ -198,7 +198,7 @@ std::vector<T> divideOperation(const std::vector<T>& numerator,
   return res;
 }
 
-TEST(JITIntegration, DISABLED_DivideOperationSample) {
+TEST(JITIntegration, DivideOperationSample) {
   Context context;
 
   auto graph = context.create<Graph>("mainGraph");
@@ -274,7 +274,7 @@ std::vector<T> logLossOperation(const std::vector<T>& prediction,
   return res;
 }
 
-TEST(JITIntegration, DISABLED_LogLossOperationSample) {
+TEST(JITIntegration, LogLossOperationSample) {
   Context context;
 
   auto graph = context.create<Graph>("mainGraph");
@@ -349,7 +349,7 @@ std::vector<T> mulOperation(const std::vector<T>& left,
   return res;
 }
 
-TEST(JITIntegration, DISABLED_MulOperationSample) {
+TEST(JITIntegration, MulOperationSample) {
   Context context;
 
   auto graph = context.create<Graph>("mainGraph");
@@ -450,7 +450,7 @@ matMulOperation(const bool leftTranspose, const bool rightTranspose, uint64_t m,
   return res;
 }
 
-TEST(JITIntegration, DISABLED_MatMulNNOperationSample) {
+TEST(JITIntegration, MatMulNNOperationSample) {
   Context context;
 
   auto graph = context.create<Graph>("mainGraph");
@@ -517,7 +517,7 @@ TEST(JITIntegration, DISABLED_MatMulNNOperationSample) {
   allocator.release(record);
 }
 
-TEST(JITIntegration, DISABLED_MatMulNNSquareOperationSample) {
+TEST(JITIntegration, MatMulNNSquareOperationSample) {
   Context context;
 
   auto graph = context.create<Graph>("mainGraph");
@@ -584,7 +584,7 @@ TEST(JITIntegration, DISABLED_MatMulNNSquareOperationSample) {
   allocator.release(record);
 }
 
-TEST(JITIntegration, DISABLED_MatMulNNRectOperationSample) {
+TEST(JITIntegration, MatMulNNRectOperationSample) {
   Context context;
 
   auto graph = context.create<Graph>("mainGraph");
@@ -671,7 +671,7 @@ TEST(JITIntegration, DISABLED_MatMulNNRectOperationSample) {
   allocator.release(record);
 }
 
-TEST(JITIntegration, DISABLED_MatMulTNRectOperationSample) {
+TEST(JITIntegration, MatMulTNRectOperationSample) {
   Context context;
 
   auto graph = context.create<Graph>("mainGraph");
@@ -728,7 +728,7 @@ TEST(JITIntegration, DISABLED_MatMulTNRectOperationSample) {
   allocator.release(record);
 }
 
-TEST(JITIntegration, DISABLED_MatMulNTRectOperationSample) {
+TEST(JITIntegration, MatMulNTRectOperationSample) {
   Context context;
 
   auto graph = context.create<Graph>("mainGraph");
@@ -799,7 +799,7 @@ std::vector<T> sigmoidOperation(const std::vector<T>& input) {
   return res;
 }
 
-TEST(JITIntegration, DISABLED_SigmoidOperationSample) {
+TEST(JITIntegration, SigmoidOperationSample) {
   Context context;
 
   auto graph = context.create<Graph>("mainGraph");
@@ -864,7 +864,7 @@ std::vector<T> mulConcatOperation(const std::vector<T>& localDerivative, const s
   return res;
 }
 
-TEST(JITIntegration, DISABLED_MulConcatOperationSample) {
+TEST(JITIntegration, MulConcatOperationSample) {
   Context context;
 
   auto graph = context.create<Graph>("mainGraph");
@@ -964,7 +964,7 @@ float testModel(LLVMExecutor& executor, Graph& graph, TensorInternal* lossTensor
 }
 
 
-TEST(JITIntegration, DISABLED_TopologyLogReg) {
+TEST(JITIntegration, TopologyLogReg) {
   Context context;
   auto graph = context.create<Graph>("graph1");
   size_t sampleSize = 3;

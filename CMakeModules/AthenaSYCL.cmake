@@ -11,6 +11,16 @@ function(add_athena_sycl_library target_name modifier export_name export_header_
         SOURCES ${source_list}
       )
       target_compile_definitions(${target_name} PRIVATE -DUSES_COMPUTECPP)
+    else()
+      check_cxx_compiler_flag(-fsycl HAS_FSYCL)
+      if (NOT HAS_FSYCL)
+        message(FATAL_ERROR "Current C++ compiler does not support SYCL")
+      endif()
+
+      add_library(${target_name} ${modifier} ${source_list})
+      target_compile_options(${target_name} PRIVATE -fsycl)
+      target_link_options(${target_name} PRIVATE -fsycl)
+      target_compile_definitions(${target_name} PRIVATE -DUSES_DPCPP)
     endif()
     
     if (UNIX)

@@ -61,8 +61,6 @@ void LLVMExecutor::addGraph(Graph& graph) {
 
   core::internal::GraphCompiler::compile(graph, generator);
 
-  ref->dump();
-
   mJITCompiler->addModule(ref);
 }
 

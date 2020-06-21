@@ -67,7 +67,14 @@ public:
 
     T* buf = alloc.get<T>(record, *device);
     T pattern = *static_cast<T*>(cmd.args[0].arg);
-    auto outEvt = q.fill(buf, pattern, record.allocationSize / sizeof(T));
+    auto outEvt = q.submit([&](handler& cgh) {
+      cgh.parallel_for<class fill>(range<1>(record.allocationSize / sizeof(T)),
+                       [=](cl::sycl::id<1> cur) {
+        buf[cur.get(0)] = pattern;
+      });
+      // FIXME use shortcuts once they are implemented
+      // cgh.template fill<T>(buf, pattern, record.allocationSize / sizeof(T));
+    });
 
     return new SYCLEvent(device, outEvt);
   }
