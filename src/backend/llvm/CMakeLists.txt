@@ -1,3 +1,4 @@
+option(ATHENA_ENABLE_EXPERIMENTAL_SYCL "Enable experimental SYCL Runtime" ON)
 set(ATH_BACKEND_LLVM "AthenaBackendLLVM" CACHE STRING "" FORCE)
 
 if(POLICY CMP0068)
