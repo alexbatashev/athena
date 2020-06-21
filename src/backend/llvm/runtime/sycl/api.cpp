@@ -21,7 +21,7 @@ using namespace cl::sycl;
 
 extern "C" {
 ATH_RT_LLVM_EXPORT DeviceContainer getAvailableDevices() {
-  auto allDevices = device::get_devices(cl::sycl::info::device_type::host);
+  auto allDevices = device::get_devices(cl::sycl::info::device_type::all);
   auto* syclDevices = new Device*[allDevices.size()];
 
   #ifdef USES_COMPUTECPP

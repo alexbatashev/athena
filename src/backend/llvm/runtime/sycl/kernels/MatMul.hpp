@@ -31,7 +31,7 @@ public:
   MatMulKernel(ReadAcc a, ReadAcc b, WriteAcc c) : left(a), right(b), out(c) {}
 
   void operator()(cl::sycl::id<2> id) {
-    T acc;
+    T acc = 0;
     for (int k = 0; k < left.get_range()[1]; k++) {
       size_t leftRow = 0;
       size_t leftCol = 0;
@@ -42,8 +42,8 @@ public:
         leftRow = id[0];
         leftCol = k;
       }
-      size_t rightRow = k;
-      size_t rightCol = id[1];
+      size_t rightRow = 0;
+      size_t rightCol = 0;
       if constexpr (TranspRight) {
         rightRow = id[1];
         rightCol = k;
@@ -51,7 +51,7 @@ public:
         rightRow = k;
         rightCol = id[1];
       }
-      acc = left[cl::sycl::id<2>{leftRow, leftCol}] *
+      acc += left[cl::sycl::id<2>{leftRow, leftCol}] *
             right[cl::sycl::id<2>{rightRow, rightCol}];
     }
     out[id] = acc;

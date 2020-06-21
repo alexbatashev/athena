@@ -31,9 +31,7 @@ public:
       : gradient(a), localDerivative(b), out(c) {}
 
   void operator()(cl::sycl::id<1> id) {
-    if (id[0] < localDerivative.get_range()[0]) {
-      out[id] = gradient[0] * localDerivative[id];
-    }
+    out[id] = gradient[0] * localDerivative[id];
   }
 
 private:

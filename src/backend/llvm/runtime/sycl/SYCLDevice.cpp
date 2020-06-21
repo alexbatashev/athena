@@ -40,7 +40,6 @@ auto SYCLDevice::launch(BackendAllocator& allocator, LaunchCommand& cmd,
     //  non-blocking call. In future runtimes will need a unified event system.
     dependency->wait();
   }
-  std::cerr << cmd.kernelName << std::endl;
   if (mKernelMap.count(cmd.kernelName)) {
     return mKernelMap.at(cmd.kernelName)(this, allocator, cmd, dependency);
   }
@@ -82,7 +81,7 @@ void SYCLDevice::populateKernelMap() {
     mKernelMap["fcopy"] = CopyWrapper<AllocatorType::buffer, float>{};
     mKernelMap["fadd"] = AddKernelWrapper<AllocatorType::buffer, float>{};
     mKernelMap["fdivide"] = DivideKernelWrapper<AllocatorType::buffer, float>{};
-    // mKernelMap["flogloss"] = LogLossWrapper<AllocatorType::buffer, float>{};
+    mKernelMap["flogloss"] = LogLossWrapper<AllocatorType::buffer, float>{};
     mKernelMap["fmul"] = MulKernelWrapper<AllocatorType::buffer, float>{};
     mKernelMap["fmulconcat"] =
         MulConcatKernelWrapper<AllocatorType::buffer, float>{};
