@@ -26,7 +26,14 @@ SYCLEvent::SYCLEvent(SYCLDevice* device, cl::sycl::event evt)
     }
   });
 };
-void SYCLEvent::wait() { mEvent.wait(); }
+void SYCLEvent::wait() {
+  // todo is thread safety required here?
+  mEvent.wait();
+  for (auto& cb : mCallbacks) {
+    cb();
+  }
+  mCallbacks.clear();
+}
 auto SYCLEvent::getDevice() -> Device* { return mDevice; };
 } // namespace athena::backend::llvm
 
