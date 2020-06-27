@@ -51,11 +51,24 @@ public:
   [[nodiscard]] auto getDeviceName() const -> std::string override {
     return mDeviceName;
   }
+  auto getProvider() const -> DeviceProvider override {
+    return DeviceProvider::SYCL;
+  }
+  auto getKind() const -> DeviceKind override {
+    if (mRealDevice.is_cpu() || mRealDevice.is_host()) {
+      return DeviceKind::CPU;
+    }
+    if (mRealDevice.is_gpu()) {
+      return DeviceKind::GPU;
+    }
+    return DeviceKind::OTHER_ACCELERATOR;
+  }
   auto isPartitionSupported(PartitionDomain domain) -> bool override {
     return false; // todo implement
   }
-  auto partition(PartitionDomain domain) -> DeviceContainer override {
-    return DeviceContainer{}; // todo implement
+  auto partition(PartitionDomain domain)
+      -> std::vector<std::shared_ptr<Device>> override {
+    return std::vector<std::shared_ptr<Device>>{}; // todo implement
   }
   auto hasAllocator() -> bool override { return true; }
   std::shared_ptr<AllocatorLayerBase> getAllocator() override {

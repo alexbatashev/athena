@@ -20,12 +20,17 @@ namespace athena::backend::llvm {
 class CudaDevice : public Device {
 public:
   CudaDevice(CUdevice device);
+  auto getProvider() const -> DeviceProvider override {
+    return DeviceProvider::CUDA;
+  }
+  auto getKind() const -> DeviceKind override { return DeviceKind::GPU; }
   std::string getDeviceName() const override;
   bool isPartitionSupported(PartitionDomain domain) override { return false; }
   bool hasAllocator() override { return false; }
 
-  DeviceContainer partition(PartitionDomain domain) override {
-    return DeviceContainer{};
+  std::vector<std::shared_ptr<Device>>
+  partition(PartitionDomain domain) override {
+    return std::vector<std::shared_ptr<Device>>{};
   };
   std::shared_ptr<AllocatorLayerBase> getAllocator() override {
     return nullptr;

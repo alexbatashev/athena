@@ -44,12 +44,19 @@ public:
     mAllocator = std::make_shared<BufferAllocator>(mContext);
   }
 
+  auto getProvider() const -> DeviceProvider override {
+    return DeviceProvider::OpenCL;
+  }
+  auto getKind() const -> DeviceKind override {
+    return DeviceKind::OTHER_ACCELERATOR;
+  }
   std::string getDeviceName() const override { return mDeviceName; }
   bool isPartitionSupported(PartitionDomain domain) override {
     return false; // todo implement
   }
-  DeviceContainer partition(PartitionDomain domain) override {
-    return Device::partition(domain); // todo implement
+  std::vector<std::shared_ptr<Device>>
+  partition(PartitionDomain domain) override {
+    return std::vector<std::shared_ptr<Device>>{}; // todo implement
   }
   bool hasAllocator() override { return true; }
   std::shared_ptr<AllocatorLayerBase> getAllocator() override {
