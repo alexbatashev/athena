@@ -962,7 +962,7 @@ float testModel(LLVMExecutor& executor, Graph& graph, TensorInternal* lossTensor
 }
 
 
-TEST(JITIntegration, TopologyLogReg) {
+TEST(JITIntegration, DISABLED_TopologyLogReg) {
   Context context;
   auto graph = context.create<Graph>("graph1");
   size_t sampleSize = 3;

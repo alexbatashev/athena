@@ -31,8 +31,14 @@ public:
   MatMulKernel(ReadAcc a, ReadAcc b, WriteAcc c) : left(a), right(b), out(c) {}
 
   void operator()(cl::sycl::id<2> id) {
+    size_t K = 0;
+    if constexpr (TranspLeft) {
+      K = left.get_range()[0];
+    } else {
+      K = left.get_range()[1];
+    }
     T acc = 0;
-    for (int k = 0; k < left.get_range()[1]; k++) {
+    for (int k = 0; k < K; k++) {
       size_t leftRow = 0;
       size_t leftCol = 0;
       if constexpr (TranspLeft) {
