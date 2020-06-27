@@ -12,6 +12,8 @@ static std::string providerToString(DeviceProvider provider) {
     return "SYCL";
   case DeviceProvider::OpenCL:
     return "OpenCL";
+  case DeviceProvider::VULKAN:
+    return "Vulkan";
   case DeviceProvider::HOST:
     return "Host";
   }

@@ -60,6 +60,14 @@ else()
   set(POLAR_HAS_CUDA "false" CACHE STRING "" FORCE)
 endif()
 
+find_package(Vulkan)
+if (Vulkan_FOUND)
+  add_subdirectory(runtime/vulkan)
+  add_dependencies(${ATH_BACKEND_LLVM} ${POLAR_RT_LLVM_VULKAN})
+else()
+  set(POLAR_HAS_VULKAN "false" CACHE STRING "" FORCE)
+endif()
+
 add_subdirectory(runtime/driver)
 
 target_include_directories(${ATH_BACKEND_LLVM} PRIVATE 
