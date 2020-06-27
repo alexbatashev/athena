@@ -18,14 +18,8 @@
 
 namespace athena::backend::llvm {
 SYCLEvent::SYCLEvent(SYCLDevice* device, cl::sycl::event evt)
-    : mDevice(device), mEvent(std::move(evt)) {
-  mFuture = std::async([&]() {
-    mEvent.wait();
-    for (auto& callback : mCallbacks) {
-      callback();
-    }
-  });
-};
+    : mDevice(device), mEvent(std::move(evt)) {}
+
 void SYCLEvent::wait() {
   // todo is thread safety required here?
   mEvent.wait();
@@ -36,4 +30,3 @@ void SYCLEvent::wait() {
 }
 auto SYCLEvent::getDevice() -> Device* { return mDevice; };
 } // namespace athena::backend::llvm
-

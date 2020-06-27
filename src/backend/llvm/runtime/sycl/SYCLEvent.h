@@ -40,7 +40,5 @@ private:
   SYCLDevice* mDevice;
   cl::sycl::event mEvent;
   std::vector<std::function<void()>> mCallbacks;
-  std::future<void> mFuture;
 };
 } // namespace athena::backend::llvm
-

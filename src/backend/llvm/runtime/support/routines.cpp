@@ -32,10 +32,12 @@ ATH_RT_SUPPORT_EXPORT void ath_release(GraphHandle* handle, Device& device,
   auto record = tensorInfoToRecord(tensor);
   if (device.getDeviceName() == "host") {
     handle->allocator->release(record);
-  } else {
+  } else if (blockingEvt) {
     blockingEvt->addCallback([handle, &device, record]() {
       handle->allocator->release(record, device);
-    }); 
+    });
+  } else {
+    handle->allocator->release(record, device);
   }
 }
 
@@ -82,10 +84,11 @@ ATH_RT_SUPPORT_EXPORT void ath_load(GraphHandle* handle, uint64_t nodeId,
                                tensor->shape);
     loader->load(acc);
   } else if (dataType == athena::core::DataType::DOUBLE) {
-    athena::utils::FatalError(athena::utils::ATH_FATAL_OTHER, "Double is not supported.");
-//    BackendAccessor<double> acc(static_cast<double*>(ptr), tensor->dims,
-//                                tensor->shape);
-//    loader->load(acc);
+    athena::utils::FatalError(athena::utils::ATH_FATAL_OTHER,
+                              "Double is not supported.");
+    //    BackendAccessor<double> acc(static_cast<double*>(ptr), tensor->dims,
+    //                                tensor->shape);
+    //    loader->load(acc);
   }
 }
 }
