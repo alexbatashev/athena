@@ -54,13 +54,11 @@ core::internal::GenValue MulOperationInternal::gen(
   GenValue out = parentNode.getResult();
   resultMap[resultTensor->getPublicIndex()] = out;
 
-  GenValue size = generator.createConstant(static_cast<uint64_t>(tensors.at(0)->getShapeView().getTotalSize()));
-
   generator.setInsertionPoint(parentNode);
 
   lockTensors(generator, argMap, resultMap);
 
-  GenValue res = generator.callBuiltin<builtin::Mul>(a, b, size, out);
+  GenValue res = generator.callBuiltin<builtin::Mul>(a, b, out);
 
   releaseTensors(generator, argMap, resultMap);
 

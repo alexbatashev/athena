@@ -132,9 +132,8 @@ TEST(MLIRRegression, DISABLED_BasicIR) {
   generator.callBuiltin<builtin::Lock>(nodeC.getResult(), LockType::READ_WRITE);
 
   auto one = generator.createConstant(1.0f);
-  auto size = generator.createConstant(static_cast<uint64_t>(tensorA.getShape().getTotalSize()));
   auto res = generator.callBuiltin<builtin::Add>(
-      nodeC.getOperand(0), one, nodeC.getOperand(1), one, size, nodeC.getResult());
+      nodeC.getOperand(0), one, nodeC.getOperand(1), one, nodeC.getResult());
 
   generator.callBuiltin<builtin::Release>(nodeC.getOperand(0));
   generator.callBuiltin<builtin::Release>(nodeC.getOperand(1));

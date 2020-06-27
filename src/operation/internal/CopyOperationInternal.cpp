@@ -51,13 +51,11 @@ core::internal::GenValue CopyOperationInternal::gen(
   GenValue out = parentNode.getResult();
   resultMap[resultTensor->getPublicIndex()] = out;
 
-  GenValue size = generator.createConstant(static_cast<uint64_t>(tensors.at(0)->getShapeView().getTotalSize()));
-
   generator.setInsertionPoint(parentNode);
 
   lockTensors(generator, argMap, resultMap);
 
-  GenValue res = generator.callBuiltin<builtin::Copy>(input, size, out);
+  GenValue res = generator.callBuiltin<builtin::Copy>(input, out);
 
   releaseTensors(generator, argMap, resultMap);
   return res;

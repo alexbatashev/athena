@@ -56,8 +56,6 @@ core::internal::GenValue CombineOperationInternal::gen(
   GenValue out = parentNode.getResult();
   resultMap[resultTensor->getPublicIndex()] = out;
 
-  GenValue size = generator.createConstant(static_cast<uint64_t>(tensors.at(0)->getShapeView().getTotalSize()));
-
   generator.setInsertionPoint(parentNode);
 
   GenValue scaleA = generator.createConstant(mAlpha);
@@ -65,7 +63,7 @@ core::internal::GenValue CombineOperationInternal::gen(
 
   lockTensors(generator, argMap, resultMap);
 
-  GenValue res = generator.callBuiltin<builtin::Add>(a, scaleA, b, scaleB, size, out);
+  GenValue res = generator.callBuiltin<builtin::Add>(a, scaleA, b, scaleB, out);
 
   releaseTensors(generator, argMap, resultMap);
 

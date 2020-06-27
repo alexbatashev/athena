@@ -11,20 +11,34 @@
 // the License.
 //===----------------------------------------------------------------------===//
 
-#ifndef ATHENA_BACKEND_LLVM_EVENT_H
-#define ATHENA_BACKEND_LLVM_EVENT_H
+#pragma once
 
-#include <functional>
+#include <athena/backend/llvm/runtime/Event.h>
+#include <athena/backend/llvm/runtime/runtime_export.h>
+
+#include <CL/sycl.hpp>
+
+#include <future>
 
 namespace athena::backend::llvm {
-class Device;
-class Event {
+class SYCLDevice;
+class ATH_RT_LLVM_EXPORT SYCLEvent final : public Event {
 public:
-  virtual ~Event() = default;
-  virtual void wait() = 0;
-  virtual void addCallback(std::function<void()>) = 0;
-  virtual auto getDevice() -> Device* = 0;
+  explicit SYCLEvent(SYCLDevice* dev, cl::sycl::event evt);
+
+  void wait() override;
+
+  void addCallback(std::function<void()> callback) override {
+    mCallbacks.push_back(std::move(callback));
+  }
+
+  auto getNativeEvent() -> cl::sycl::event& { return mEvent; }
+
+  auto getDevice() -> Device* override;
+
+private:
+  SYCLDevice* mDevice;
+  cl::sycl::event mEvent;
+  std::vector<std::function<void()>> mCallbacks;
 };
 } // namespace athena::backend::llvm
-
-#endif

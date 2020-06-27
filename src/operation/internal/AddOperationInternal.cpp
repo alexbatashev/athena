@@ -60,11 +60,10 @@ core::internal::GenValue AddOperationInternal::gen(
   // TODO take scale values from operation
   GenValue scaleA = generator.createConstant(1.0f);
   GenValue scaleB = generator.createConstant(1.0f);
-  GenValue size = generator.createConstant(static_cast<uint64_t>(tensors.at(0)->getShapeView().getTotalSize()));
 
   lockTensors(generator, argMap, resultMap);
 
-  GenValue res = generator.callBuiltin<builtin::Add>(a, scaleA, b, scaleB, size, out);
+  GenValue res = generator.callBuiltin<builtin::Add>(a, scaleA, b, scaleB, out);
 
   releaseTensors(generator, argMap, resultMap);
   return res;

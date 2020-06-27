@@ -109,8 +109,6 @@ TEST(JITIntegration, DISABLED_AddOperationSample) {
     EXPECT_NEAR(res[i], target2[i], eps);
   }
   allocator.release(record);
-  std::cout << "**************************************************"
-            << std::endl;
 }
 
 template <typename T>

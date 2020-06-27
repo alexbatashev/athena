@@ -61,22 +61,11 @@ core::internal::GenValue MatMulOperationInternal::gen(
   std::unordered_map<utils::Index, GenValue> resultMap;
   GenValue out = parentNode.getResult();
   resultMap[resultTensor->getPublicIndex()] = out;
-
-  auto leftTensorPtr = tensors[mapMarkToLocalTensorIndex.at(MatMulOperation::LEFT)];
-  auto rightTensorPtr = tensors[mapMarkToLocalTensorIndex.at(MatMulOperation::RIGHT)];
-
-  GenValue transLeft = generator.createConstant(static_cast<uint64_t>(mIsLeftTranspose));
-  GenValue transRight = generator.createConstant(static_cast<uint64_t>(mIsRightTranspose));
-
-  GenValue m = generator.createConstant(mIsLeftTranspose ? static_cast<uint64_t>(leftTensorPtr->getShape()[1]) : static_cast<uint64_t>(leftTensorPtr->getShape()[0]));
-  GenValue k = generator.createConstant(mIsLeftTranspose ? static_cast<uint64_t>(leftTensorPtr->getShape()[0]) : static_cast<uint64_t>(leftTensorPtr->getShape()[1]));
-  GenValue n = generator.createConstant(mIsRightTranspose ? static_cast<uint64_t>(rightTensorPtr->getShape()[0]) : static_cast<uint64_t>(rightTensorPtr->getShape()[1]));
-
   generator.setInsertionPoint(parentNode);
 
   lockTensors(generator, argMap, resultMap);
 
-  GenValue res = generator.callBuiltin<builtin::MatMul>(transLeft, transRight, m, n, k, left, right, out);
+  GenValue res = generator.callBuiltin<builtin::MatMul>(left, right, out, mIsLeftTranspose, mIsRightTranspose);
 
   releaseTensors(generator, argMap, resultMap);
 

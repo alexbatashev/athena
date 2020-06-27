@@ -11,21 +11,23 @@
 // the License.
 //===----------------------------------------------------------------------===//
 
-#ifndef ATHENA_PASSES_H
-#define ATHENA_PASSES_H
+#pragma once
 
-#include <memory>
+#include <athena/backend/llvm/runtime/Queue.h>
 
-namespace mlir {
-class ModuleOp;
-class FuncOp;
-template <typename OpT> class OperationPass;
+#include <CL/sycl.hpp>
 
-std::unique_ptr<OperationPass<ModuleOp>> createDeployDefaultFunctionsPass();
-std::unique_ptr<OperationPass<ModuleOp>> createGraphRelationDestructorPass();
-std::unique_ptr<OperationPass<FuncOp>> createBarrierLegalizerPass();
-std::unique_ptr<OperationPass<FuncOp>> createLegalizeRTForLoweringPass();
-auto createReleaseDependencyPass() -> std::unique_ptr<OperationPass<FuncOp>>;
-} // namespace mlir
+namespace athena::backend::llvm {
+class SYCLQueue : public Queue {
+public:
+  // todo add async exception handler
+  SYCLQueue(const cl::sycl::device& device) : mQueue(device) {}
 
-#endif // ATHENA_PASSES_H
+  void wait() override { mQueue.wait(); }
+
+  cl::sycl::queue getNativeQueue() { return mQueue; }
+
+private:
+  cl::sycl::queue mQueue;
+};
+} // namespace athena::backend::llvm

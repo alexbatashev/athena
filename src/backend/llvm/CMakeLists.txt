@@ -1,3 +1,4 @@
+option(ATHENA_ENABLE_EXPERIMENTAL_SYCL "Enable experimental SYCL Runtime" ON)
 set(ATH_BACKEND_LLVM "AthenaBackendLLVM" CACHE STRING "" FORCE)
 
 if(POLICY CMP0068)
@@ -32,14 +33,7 @@ message(STATUS "Using LLVMConfig.cmake in: ${LLVM_DIR}")
 add_subdirectory(runtime/support)
 add_subdirectory(jit)
 
-find_package(OpenCL)
-if (${OpenCL_FOUND})
-    add_subdirectory(runtime/opencl)
-else()
-    set(ATH_HAS_OPENCL "false" CACHE STRING "" FORCE)
-endif ()
-
-add_subdirectory(runtime/driver)
+set(ATH_HAS_OPENCL "false" CACHE STRING "" FORCE)
 
 add_athena_library(${ATH_BACKEND_LLVM} STATIC
         ATH_BACKEND_LLVM # export name
@@ -49,6 +43,16 @@ add_athena_library(${ATH_BACKEND_LLVM} STATIC
         allocators/LayerAllocator.cpp
         ImageManager.cpp
         CodeGen.cpp)
+
+if (ATHENA_ENABLE_EXPERIMENTAL_SYCL)
+  set(ATH_HAS_SYCL "true" CACHE STRING "" FORCE)
+  add_subdirectory(runtime/sycl)
+  add_dependencies(${ATH_BACKEND_LLVM} ${ATH_RT_LLVM_SYCL})
+else()
+  set(ATH_HAS_SYCL "false" CACHE STRING "" FORCE)
+endif()
+
+add_subdirectory(runtime/driver)
 
 target_include_directories(${ATH_BACKEND_LLVM} PRIVATE 
                           ${LLVM_INCLUDE_DIRS}

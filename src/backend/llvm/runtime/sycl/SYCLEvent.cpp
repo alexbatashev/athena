@@ -11,21 +11,22 @@
 // the License.
 //===----------------------------------------------------------------------===//
 
-#ifndef ATHENA_PASSES_H
-#define ATHENA_PASSES_H
+#include "SYCLEvent.h"
+#include "SYCLDevice.h"
 
-#include <memory>
+#include <utility>
 
-namespace mlir {
-class ModuleOp;
-class FuncOp;
-template <typename OpT> class OperationPass;
+namespace athena::backend::llvm {
+SYCLEvent::SYCLEvent(SYCLDevice* device, cl::sycl::event evt)
+    : mDevice(device), mEvent(std::move(evt)) {}
 
-std::unique_ptr<OperationPass<ModuleOp>> createDeployDefaultFunctionsPass();
-std::unique_ptr<OperationPass<ModuleOp>> createGraphRelationDestructorPass();
-std::unique_ptr<OperationPass<FuncOp>> createBarrierLegalizerPass();
-std::unique_ptr<OperationPass<FuncOp>> createLegalizeRTForLoweringPass();
-auto createReleaseDependencyPass() -> std::unique_ptr<OperationPass<FuncOp>>;
-} // namespace mlir
-
-#endif // ATHENA_PASSES_H
+void SYCLEvent::wait() {
+  // todo is thread safety required here?
+  mEvent.wait();
+  for (auto& cb : mCallbacks) {
+    cb();
+  }
+  mCallbacks.clear();
+}
+auto SYCLEvent::getDevice() -> Device* { return mDevice; };
+} // namespace athena::backend::llvm

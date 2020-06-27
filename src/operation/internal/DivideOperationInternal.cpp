@@ -13,9 +13,9 @@
 
 #include <athena/core/node/internal/AbstractNodeInternal.h>
 #include <athena/core/node/internal/NodeInternal.h>
+#include <athena/loaders/DummyLoader.h>
 #include <athena/operation/DivideOperation.h>
 #include <athena/operation/internal/DivideOperationInternal.h>
-#include <athena/loaders/DummyLoader.h>
 
 using namespace athena::core::internal;
 
@@ -44,23 +44,26 @@ core::internal::GenValue DivideOperationInternal::gen(
     const std::vector<core::internal::TensorInternal*>& tensors,
     const core::internal::TensorInternal* resultTensor,
     core::internal::GenNode parentNode) const {
+  generator.setInsertionPoint(parentNode);
+
   std::unordered_map<utils::Index, GenValue> argMap;
-  GenValue numerator = parentNode.getOperand(mapMarkToLocalTensorIndex.at(DivideOperation::NUMERATOR));
-  argMap[tensors.at(mapMarkToLocalTensorIndex.at(DivideOperation::NUMERATOR))->getPublicIndex()] = numerator;
-  GenValue denominator = parentNode.getOperand(mapMarkToLocalTensorIndex.at(DivideOperation::DENOMINATOR));
-  argMap[tensors.at(mapMarkToLocalTensorIndex.at(DivideOperation::DENOMINATOR))->getPublicIndex()] = denominator;
+  GenValue numerator = parentNode.getOperand(
+      mapMarkToLocalTensorIndex.at(DivideOperation::NUMERATOR));
+  argMap[tensors.at(mapMarkToLocalTensorIndex.at(DivideOperation::NUMERATOR))
+             ->getPublicIndex()] = numerator;
+  GenValue denominator = parentNode.getOperand(
+      mapMarkToLocalTensorIndex.at(DivideOperation::DENOMINATOR));
+  argMap[tensors.at(mapMarkToLocalTensorIndex.at(DivideOperation::DENOMINATOR))
+             ->getPublicIndex()] = denominator;
 
   std::unordered_map<utils::Index, GenValue> resultMap;
   GenValue out = parentNode.getResult();
   resultMap[resultTensor->getPublicIndex()] = out;
 
-  GenValue size = generator.createConstant(static_cast<uint64_t>(tensors.at(0)->getShapeView().getTotalSize()));
-
-  generator.setInsertionPoint(parentNode);
-
   lockTensors(generator, argMap, resultMap);
 
-  GenValue res = generator.callBuiltin<builtin::Divide>(numerator, denominator, size, out);
+  GenValue res =
+      generator.callBuiltin<builtin::Divide>(numerator, denominator, out);
 
   releaseTensors(generator, argMap, resultMap);
 
@@ -70,7 +73,8 @@ core::internal::GenValue DivideOperationInternal::gen(
 std::tuple<utils::Index, std::vector<core::internal::Edge>,
            std::vector<utils::Index>>
 DivideOperationInternal::genDerivative(
-    const core::NodeState* inputNodeState, const core::NodeState* currentNodeState, size_t indexOfOutputDependence,
+    const core::NodeState* inputNodeState,
+    const core::NodeState* currentNodeState, size_t indexOfOutputDependence,
     utils::Index gradientGraphFinalNodeIndex) const {
   // TODO
   return {};

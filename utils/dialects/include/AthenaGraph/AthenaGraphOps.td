@@ -224,16 +224,15 @@ def AthenaGraph_AddOp : AthenaGraph_Op<"add", [ComputationalOpInterface]> {
   let description = [{ TBD }];
 
   let arguments = (ins AnyTensor:$a, AnyType:$scaleA, AnyTensor:$b,
-                       AnyType:$scaleB, AnyType:$size, AnyTensor:$out);
+                       AnyType:$scaleB, AnyTensor:$out);
   let results = (outs AnyTensor);
   let builders = [OpBuilder<"OpBuilder& builder, OperationState& result, "
-                            "Value a, Value scaleA, Value b, Value scaleB, Value size, "
+                            "Value a, Value scaleA, Value b, Value scaleB, "
                             "Value out", [{
     result.addOperands(a);
     result.addOperands(scaleA);
     result.addOperands(b);
     result.addOperands(scaleB);
-    result.addOperands(size);
     result.addOperands(out);
     result.types.push_back(out.getType());
   }]>];
@@ -248,13 +247,11 @@ def AthenaGraph_CopyOp : AthenaGraph_Op<"copy", [ComputationalOpInterface]> {
   let summary = "Element-wise copy operation";
   let description = [{ TBD }];
 
-  let arguments = (ins AnyTensor:$input, AnyType:$size, AnyTensor:$out);
+  let arguments = (ins AnyTensor:$input, AnyTensor:$out);
   let results = (outs AnyTensor);
   let builders = [OpBuilder<"OpBuilder& builder, OperationState& result, "
-                            "Value input, Value size, "
-                            "Value out", [{
+                            "Value input, Value out", [{
     result.addOperands(input);
-    result.addOperands(size);
     result.addOperands(out);
     result.types.push_back(out.getType());
   }]>];
@@ -269,15 +266,13 @@ def AthenaGraph_DivideOp : AthenaGraph_Op<"divide", [ComputationalOpInterface]> 
   let summary = "Element-wise division operation";
   let description = [{ TBD }];
 
-  let arguments = (ins AnyTensor:$numerator, AnyTensor:$denominator, AnyType:$size,
-  AnyTensor:$out);
+  let arguments = (ins AnyTensor:$numerator, AnyTensor:$denominator, 
+                   AnyTensor:$out);
   let results = (outs AnyTensor);
   let builders = [OpBuilder<"OpBuilder& builder, OperationState& result, "
-                            "Value numerator, Value denominator, Value size, "
-                            "Value out", [{
+                            "Value numerator, Value denominator, Value out", [{
     result.addOperands(numerator);
     result.addOperands(denominator);
-    result.addOperands(size);
     result.addOperands(out);
     result.types.push_back(out.getType());
   }]>];
@@ -292,15 +287,13 @@ def AthenaGraph_LogLossOp : AthenaGraph_Op<"logloss", [ComputationalOpInterface]
   let summary = "Element-wise logistic loss operation";
   let description = [{ TBD }];
 
-  let arguments = (ins AnyTensor:$predicted, AnyTensor:$groundTruth, AnyType:$size,
-  AnyTensor:$out);
+  let arguments = (ins AnyTensor:$predicted, AnyTensor:$groundTruth, 
+                   AnyTensor:$out);
   let results = (outs AnyTensor);
   let builders = [OpBuilder<"OpBuilder& builder, OperationState& result, "
-                            "Value predicted, Value groundTruth, Value size, "
-                            "Value out", [{
+                            "Value predicted, Value groundTruth, Value out", [{
     result.addOperands(predicted);
     result.addOperands(groundTruth);
-    result.addOperands(size);
     result.addOperands(out);
     result.types.push_back(out.getType());
   }]>];
@@ -315,25 +308,32 @@ def AthenaGraph_MatMulOp : AthenaGraph_Op<"matmul", [ComputationalOpInterface]> 
   let summary = "Matrix-matrix multiplication operation";
   let description = [{ TBD }];
 
-  let arguments = (ins AnyType:$transLeft, AnyType:$transRight, AnyType:$m,
-  AnyType:$n, AnyType:$k, AnyTensor:$left, AnyTensor:$right, AnyTensor:$out);
+  let arguments = (ins AnyTensor:$left, AnyTensor:$right, AnyTensor:$out, 
+                   BoolAttr:$transpose_left, BoolAttr:$transpose_right);
   let results = (outs AnyTensor);
   let builders = [OpBuilder<"OpBuilder& builder, OperationState& result, "
-                            "Value transLeft, Value transRight, Value m, Value n, Value k, Value left, Value right, "
-                            "Value out", [{
-  result.addOperands(transLeft);
-  result.addOperands(transRight);
-  result.addOperands(m);
-  result.addOperands(n);
-  result.addOperands(k);
+                            "Value left, Value right, Value out, "
+                            "bool transpLeft, bool transpRight", [{
   result.addOperands(left);
   result.addOperands(right);
   result.addOperands(out);
+  auto transposeLeftAttr = builder.getBoolAttr(transpLeft);
+  auto transposeRightAttr = builder.getBoolAttr(transpRight);
+  result.addAttribute("transpose_left", transposeLeftAttr);
+  result.addAttribute("transpose_right", transposeRightAttr);
   result.types.push_back(out.getType());
   }]>];
   let extraClassDeclaration = [{
     llvm::StringRef getKernelName() {
-      return "fmatmul";
+      if (transpose_right() && transpose_left()) {
+        return "fmatmul_t_t";
+      } else if (transpose_right()) {
+        return "fmatmul_f_t";
+      } else if (transpose_left()) {
+        return "fmatmul_t_f";
+      } else {
+        return "fmatmul_f_f";
+      }
     }
   }];
 }
@@ -342,15 +342,12 @@ def AthenaGraph_MulOp : AthenaGraph_Op<"mul", [ComputationalOpInterface]> {
   let summary = "Element-wise multiplication operation";
   let description = [{ TBD }];
 
-  let arguments = (ins AnyTensor:$a, AnyTensor:$b, AnyType:$size,
-                       AnyTensor:$out);
+  let arguments = (ins AnyTensor:$a, AnyTensor:$b, AnyTensor:$out);
   let results = (outs AnyTensor);
   let builders = [OpBuilder<"OpBuilder& builder, OperationState& result, "
-                            "Value a, Value b, Value size, "
-                            "Value out", [{
+                            "Value a, Value b, Value out", [{
     result.addOperands(a);
     result.addOperands(b);
-    result.addOperands(size);
     result.addOperands(out);
     result.types.push_back(out.getType());
   }]>];
@@ -365,16 +362,14 @@ def AthenaGraph_MulConcatOp : AthenaGraph_Op<"mulconcat", [ComputationalOpInterf
   let summary = "Element-wise multiplication operation";
   let description = [{ TBD }];
 
-  let arguments = (ins AnyTensor:$gradient, AnyType:$gradientSize, AnyTensor:$localDerivative, AnyType:$localDerivativeSize,
-  AnyTensor:$out);
+  let arguments = (ins AnyTensor:$gradient, AnyTensor:$localDerivative,
+                   AnyTensor:$out);
   let results = (outs AnyTensor);
   let builders = [OpBuilder<"OpBuilder& builder, OperationState& result, "
-                            "Value gradient, Value gradientSize, Value localDerivative, Value localDerivativeSize, "
-                            "Value out", [{
+                            "Value gradient, Value localDerivative, Value out", 
+                            [{
     result.addOperands(gradient);
-    result.addOperands(gradientSize);
     result.addOperands(localDerivative);
-    result.addOperands(localDerivativeSize);
     result.addOperands(out);
     result.types.push_back(out.getType());
   }]>];
@@ -389,14 +384,11 @@ def AthenaGraph_SigmoidOp : AthenaGraph_Op<"sigmoid", [ComputationalOpInterface]
   let summary = "Element-wise sigmoid operation";
   let description = [{ TBD }];
 
-  let arguments = (ins AnyTensor:$input, AnyType:$size,
-  AnyTensor:$out);
+  let arguments = (ins AnyTensor:$input, AnyTensor:$out);
   let results = (outs AnyTensor);
   let builders = [OpBuilder<"OpBuilder& builder, OperationState& result, "
-                            "Value input, Value size, "
-                            "Value out", [{
+                            "Value input, Value out", [{
     result.addOperands(input);
-    result.addOperands(size);
     result.addOperands(out);
     result.types.push_back(out.getType());
   }]>];
@@ -415,9 +407,8 @@ def AthenaGraph_TransposeOp : AthenaGraph_Op<"transpose", [Computational]> {
   let arguments = (ins AnyTensor:$a, AnyTensor:$size, AnyTensor:$res);
   let results = (outs AnyTensor);
   let builders = [OpBuilder<"OpBuilder& builder, OperationState& result, "
-                            "Value a, Value size, Value out", [{
+                            "Value a, Value out", [{
     result.addOperands(a);
-    result.addOperands(size);
     result.addOperands(out);
   result.types.push_back(out.getType());
   }]>];
@@ -427,12 +418,11 @@ def AthenaGraph_FillOp : AthenaGraph_Op<"fill", [ComputationalOpInterface]> {
   let summary = "Fills tensor with value";
   let description = [{ TBD }];
 
-  let arguments = (ins AnyType:$pattern, AnyType:$size, AnyTensor:$out);
+  let arguments = (ins AnyType:$pattern, AnyTensor:$out);
   let results = (outs AnyTensor);
   let builders = [OpBuilder<"OpBuilder& builder, OperationState& result, "
-                            "Value pattern, Value size, Value out", [{
+                            "Value pattern, Value out", [{
     result.addOperands(pattern);
-    result.addOperands(size);
     result.addOperands(out);
     result.types.push_back(out.getType());
   }]>];

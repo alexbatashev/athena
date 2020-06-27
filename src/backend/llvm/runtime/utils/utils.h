@@ -13,3 +13,11 @@ inline auto tensorInfoToRecord(TensorInfo* tensor)
   }
   return record;
 }
+
+inline auto tensorSize(TensorInfo* tensor) {
+  uint64_t total = 1;
+  for (int i = 0; i < tensor->dims; i++) {
+    total *= tensor->shape[i];
+  }
+  return total;
+}

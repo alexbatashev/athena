@@ -13,9 +13,9 @@
 
 #include <athena/core/node/internal/AbstractNodeInternal.h>
 #include <athena/core/node/internal/NodeInternal.h>
+#include <athena/loaders/DummyLoader.h>
 #include <athena/operation/MulConcatOperation.h>
 #include <athena/operation/internal/MulConcatOperationInternal.h>
-#include <athena/loaders/DummyLoader.h>
 
 using namespace athena::core::internal;
 
@@ -31,7 +31,9 @@ utils::Index MulConcatOperationInternal::createResultTensor(
     const std::unordered_map<int64_t, utils::Index>& mapMarkToLocalTensorIndex,
     const std::vector<core::internal::TensorInternal*>& tensors) const {
   auto dataType = tensors[0]->getDataType();
-  auto tensorShape = tensors[mapMarkToLocalTensorIndex.at(MulConcatOperation::LOCAL_DERIVATIVE)]->getShape();
+  auto tensorShape = tensors[mapMarkToLocalTensorIndex.at(
+                                 MulConcatOperation::LOCAL_DERIVATIVE)]
+                         ->getShape();
   // TODO check preconditions
   return context->create<core::internal::TensorInternal>(
       context, context->getNextPublicIndex(), dataType, std::move(tensorShape));
@@ -45,23 +47,27 @@ core::internal::GenValue MulConcatOperationInternal::gen(
     const core::internal::TensorInternal* resultTensor,
     core::internal::GenNode parentNode) const {
   std::unordered_map<utils::Index, GenValue> argMap;
-  GenValue gradient = parentNode.getOperand(mapMarkToLocalTensorIndex.at(MulConcatOperation::GRADIENT));
-  argMap[tensors.at(mapMarkToLocalTensorIndex.at(MulConcatOperation::GRADIENT))->getPublicIndex()] = gradient;
-  GenValue localDerivative = parentNode.getOperand(mapMarkToLocalTensorIndex.at(MulConcatOperation::LOCAL_DERIVATIVE));
-  argMap[tensors.at(mapMarkToLocalTensorIndex.at(MulConcatOperation::LOCAL_DERIVATIVE))->getPublicIndex()] = localDerivative;
+  GenValue gradient = parentNode.getOperand(
+      mapMarkToLocalTensorIndex.at(MulConcatOperation::GRADIENT));
+  argMap[tensors.at(mapMarkToLocalTensorIndex.at(MulConcatOperation::GRADIENT))
+             ->getPublicIndex()] = gradient;
+  GenValue localDerivative = parentNode.getOperand(
+      mapMarkToLocalTensorIndex.at(MulConcatOperation::LOCAL_DERIVATIVE));
+  argMap[tensors
+             .at(mapMarkToLocalTensorIndex.at(
+                 MulConcatOperation::LOCAL_DERIVATIVE))
+             ->getPublicIndex()] = localDerivative;
 
   std::unordered_map<utils::Index, GenValue> resultMap;
   GenValue out = parentNode.getResult();
   resultMap[resultTensor->getPublicIndex()] = out;
 
-  GenValue gradientSize = generator.createConstant(static_cast<uint64_t>(tensors[mapMarkToLocalTensorIndex.at(MulConcatOperation::GRADIENT)]->getShapeView().getTotalSize()));
-  GenValue localDerivativeSize = generator.createConstant(static_cast<uint64_t>(tensors[mapMarkToLocalTensorIndex.at(MulConcatOperation::LOCAL_DERIVATIVE)]->getShapeView().getTotalSize()));
-
   generator.setInsertionPoint(parentNode);
 
   lockTensors(generator, argMap, resultMap);
 
-  GenValue res = generator.callBuiltin<builtin::MulConcat>(gradient, gradientSize, localDerivative, localDerivativeSize, out);
+  GenValue res =
+      generator.callBuiltin<builtin::MulConcat>(gradient, localDerivative, out);
 
   releaseTensors(generator, argMap, resultMap);
 
@@ -71,9 +77,10 @@ core::internal::GenValue MulConcatOperationInternal::gen(
 std::tuple<utils::Index, std::vector<core::internal::Edge>,
            std::vector<utils::Index>>
 MulConcatOperationInternal::genDerivative(
-    const core::NodeState* inputNodeState, const core::NodeState* currentNodeState, size_t indexOfOutputDependence,
+    const core::NodeState* inputNodeState,
+    const core::NodeState* currentNodeState, size_t indexOfOutputDependence,
     utils::Index gradientGraphFinalNodeIndex) const {
-  //TODO
+  // TODO
   return {};
 }
 

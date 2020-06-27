@@ -54,13 +54,11 @@ core::internal::GenValue SigmoidOperationInternal::gen(
   GenValue out = parentNode.getResult();
   resultMap[resultTensor->getPublicIndex()] = out;
 
-  GenValue size = generator.createConstant(static_cast<uint64_t>(tensors.at(0)->getShapeView().getTotalSize()));
-
   generator.setInsertionPoint(parentNode);
 
   lockTensors(generator, argMap, resultMap);
 
-  GenValue res = generator.callBuiltin<builtin::Sigmoid>(input, size, out);
+  GenValue res = generator.callBuiltin<builtin::Sigmoid>(input, out);
 
   releaseTensors(generator, argMap, resultMap);
 
