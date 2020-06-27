@@ -21,11 +21,12 @@ namespace athena::backend::llvm {
 class GraphPartitionPlanner {
 private:
   core::Graph& mGraph;
-  DeviceContainer mDevices;
+  std::vector<std::shared_ptr<Device>> mDevices;
 
 public:
   explicit GraphPartitionPlanner(core::Graph& graph) : mGraph(graph){};
-  DeviceContainer getPartitionedDevices(DeviceContainer devices);
+  std::vector<std::shared_ptr<Device>>
+  getPartitionedDevices(const std::vector<std::shared_ptr<Device>>& devices);
   std::unordered_map<std::string_view, Device*> getGraphPartitioning();
 };
 } // namespace athena::backend::llvm

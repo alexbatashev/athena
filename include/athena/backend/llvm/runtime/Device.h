@@ -32,10 +32,9 @@ class Device;
 class Event;
 class BackendAllocator;
 
-extern "C" struct ATH_BACKEND_LLVM_EXPORT DeviceContainer {
-  Device** devices;
-  size_t count;
-};
+enum class DeviceProvider { CUDA, SYCL, OpenCL, HOST };
+
+enum class DeviceKind { CPU, GPU, FPGA, OTHER_ACCELERATOR, HOST };
 
 class ATH_BACKEND_LLVM_EXPORT Device {
 public:
@@ -44,11 +43,14 @@ public:
 
   enum class PartitionDomain { EQUALLY, BY_COUNT, NUMA };
   ///@{ \name Device information
+  virtual DeviceProvider getProvider() const = 0;
+  virtual DeviceKind getKind() const = 0;
   virtual std::string getDeviceName() const = 0;
   virtual bool isPartitionSupported(PartitionDomain domain) { return false; };
   virtual bool hasAllocator() { return false; };
   ///@}
-  virtual DeviceContainer partition(PartitionDomain domain) = 0;
+  virtual std::vector<std::shared_ptr<Device>>
+  partition(PartitionDomain domain) = 0;
   virtual std::shared_ptr<AllocatorLayerBase> getAllocator() = 0;
 
   virtual bool operator==(const Device& device) const { return false; };

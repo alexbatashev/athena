@@ -16,8 +16,9 @@
 using namespace athena::core;
 
 namespace athena::backend::llvm {
-DeviceContainer
-GraphPartitionPlanner::getPartitionedDevices(DeviceContainer devices) {
+std::vector<std::shared_ptr<Device>>
+GraphPartitionPlanner::getPartitionedDevices(
+    const std::vector<std::shared_ptr<Device>>& devices) {
   // todo abatashev: implement a more complex logic: partition by NUMA and
   // graph requirements
   mDevices = devices;
@@ -34,7 +35,7 @@ GraphPartitionPlanner::getGraphPartitioning() {
     for (auto& nodeState : cluster.content) {
       auto& node = ctx.internal()->getRef<internal::AbstractNodeInternal>(
           nodeState.nodeIndex);
-      partitioning[node.getName().getString()] = mDevices.devices[0];
+      partitioning[node.getName().getString()] = mDevices[0].get();
     }
   }
 
