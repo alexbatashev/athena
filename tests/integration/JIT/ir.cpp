@@ -37,7 +37,7 @@ module {
 }
 )";
 
-TEST(JITIntegration, FillOperationSample) {
+TEST(JITIntegration, DISABLED_FillOperationSample) {
   LLVMExecutor executor;
   executor.addModule(IR);
 
