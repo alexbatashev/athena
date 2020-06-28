@@ -22,13 +22,13 @@ using namespace athena::backend::llvm;
 
 extern "C" {
 
-ATH_RT_LLVM_EXPORT Context* initContext() {
+ATH_RT_LLVM_EXPORT auto initContext() -> Context* {
   VkApplicationInfo applicationInfo = {};
   applicationInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
   applicationInfo.pNext = nullptr;
-  applicationInfo.pApplicationName = "MLIR Vulkan runtime";
+  applicationInfo.pApplicationName = "PolarAI Framework";
   applicationInfo.applicationVersion = 0;
-  applicationInfo.pEngineName = "mlir";
+  applicationInfo.pEngineName = "polarai";
   applicationInfo.engineVersion = 0;
   applicationInfo.apiVersion = VK_MAKE_VERSION(1, 0, 0);
 
@@ -38,14 +38,13 @@ ATH_RT_LLVM_EXPORT Context* initContext() {
   instanceCreateInfo.flags = 0;
   instanceCreateInfo.pApplicationInfo = &applicationInfo;
   instanceCreateInfo.enabledLayerCount = 0;
-  instanceCreateInfo.ppEnabledLayerNames = 0;
+  instanceCreateInfo.ppEnabledLayerNames = nullptr;
   instanceCreateInfo.enabledExtensionCount = 0;
-  instanceCreateInfo.ppEnabledExtensionNames = 0;
+  instanceCreateInfo.ppEnabledExtensionNames = nullptr;
 
   VkInstance instance{VK_NULL_HANDLE};
-  vkCreateInstance(&instanceCreateInfo, 0, &instance);
-  // return new VulkanContext(instance);
-  return nullptr;
+  vkCreateInstance(&instanceCreateInfo, nullptr, &instance);
+  return new VulkanContext(instance);
 }
 
 ATH_RT_LLVM_EXPORT void closeContext(Context* ctx) { delete ctx; }

@@ -13,22 +13,22 @@
 
 #pragma once
 
-#include "DynamicLibrary.h"
-
-#include <athena/backend/llvm/runtime/Device.h>
-#include <athena/backend/llvm/runtime/Context.h>
+#include <memory>
+#include <string_view>
 
 namespace athena::backend::llvm {
-class RuntimeDriver {
+class DynamicLibrary {
 public:
-  RuntimeDriver();
-  auto getDeviceList() -> std::vector<std::shared_ptr<Device>>& {
-    return mDevices;
-  };
+  static std::unique_ptr<DynamicLibrary> create(std::string_view libName);
+  void* lookup(std::string_view symbolName);
+
+  ~DynamicLibrary();
 
 private:
-  std::vector<std::unique_ptr<DynamicLibrary>> mLibs;
-  std::vector<std::shared_ptr<Device>> mDevices;
-  std::vector<std::shared_ptr<Context>> mContexts;
+  friend auto std::make_unique<DynamicLibrary>(void*&)
+      -> std::unique_ptr<DynamicLibrary>;
+  DynamicLibrary(void* handle) : mHandle(handle){};
+
+  void* mHandle;
 };
 } // namespace athena::backend::llvm

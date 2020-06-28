@@ -16,14 +16,15 @@
 
 namespace athena::backend::llvm {
 VulkanContext::VulkanContext(VkInstance instance) : mInstance(instance) {
-  // uint32_t deviceCount;
-  // vkEnumeratePhysicalDevices(mInstance, &deviceCount, nullptr);
+  uint32_t deviceCount;
+  vkEnumeratePhysicalDevices(mInstance, &deviceCount, nullptr);
 
-  // std::vector<VkPhysicalDevice> devices(deviceCount);
-  // vkEnumeratePhysicalDevices(instance, &deviceCount, devices.data());
+  std::vector<VkPhysicalDevice> devices(deviceCount);
+  vkEnumeratePhysicalDevices(instance, &deviceCount, devices.data());
 
-  // for (auto device : devices) {
-  // }
+  for (auto device : devices) {
+    mDevices.push_back(std::make_shared<VulkanDevice>(device));
+  }
 }
 std::vector<std::shared_ptr<Device>>& VulkanContext::getDevices() {
   return mDevices;

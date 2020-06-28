@@ -19,20 +19,17 @@ static uint32_t getComputeQueueFamilyIndex(VkPhysicalDevice physicalDevice) {
   uint32_t queueFamilyCount;
 
   vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice, &queueFamilyCount,
-                                           NULL);
+                                           nullptr);
 
-  // Retrieve all queue families.
   std::vector<VkQueueFamilyProperties> queueFamilies(queueFamilyCount);
   vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice, &queueFamilyCount,
                                            queueFamilies.data());
 
-  // Now find a family that supports compute.
   uint32_t i = 0;
   for (; i < queueFamilies.size(); ++i) {
     VkQueueFamilyProperties props = queueFamilies[i];
 
     if (props.queueCount > 0 && (props.queueFlags & VK_QUEUE_COMPUTE_BIT)) {
-      // found a queue with compute. We're done!
       break;
     }
   }
@@ -66,6 +63,10 @@ VulkanDevice::VulkanDevice(VkPhysicalDevice device) : mPhysicalDevice(device) {
   deviceCreateInfo.pEnabledFeatures = &deviceFeatures;
 
   vkCreateDevice(mPhysicalDevice, &deviceCreateInfo, nullptr, &mDevice);
+
+  VkPhysicalDeviceProperties props;
+  vkGetPhysicalDeviceProperties(mPhysicalDevice, &props);
+  mDeviceName = props.deviceName;
 }
 
 std::string VulkanDevice::getDeviceName() const { return mDeviceName; }
