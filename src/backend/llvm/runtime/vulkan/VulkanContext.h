@@ -13,22 +13,18 @@
 
 #pragma once
 
-#include "DynamicLibrary.h"
-
-#include <athena/backend/llvm/runtime/Device.h>
 #include <athena/backend/llvm/runtime/Context.h>
 
+#include <vulkan/vulkan.h>
+
 namespace athena::backend::llvm {
-class RuntimeDriver {
+class VulkanContext : public Context {
 public:
-  RuntimeDriver();
-  auto getDeviceList() -> std::vector<std::shared_ptr<Device>>& {
-    return mDevices;
-  };
+  VulkanContext(VkInstance instance);
+  std::vector<std::shared_ptr<Device>>& getDevices() override;
 
 private:
-  std::vector<std::unique_ptr<DynamicLibrary>> mLibs;
   std::vector<std::shared_ptr<Device>> mDevices;
-  std::vector<std::shared_ptr<Context>> mContexts;
+  VkInstance mInstance; 
 };
 } // namespace athena::backend::llvm

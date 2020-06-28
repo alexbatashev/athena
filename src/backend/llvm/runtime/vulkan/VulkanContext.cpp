@@ -11,24 +11,22 @@
 // the License.
 //===----------------------------------------------------------------------===//
 
-#pragma once
-
-#include "DynamicLibrary.h"
-
-#include <athena/backend/llvm/runtime/Device.h>
-#include <athena/backend/llvm/runtime/Context.h>
+#include "VulkanContext.h"
+#include "VulkanDevice.h"
 
 namespace athena::backend::llvm {
-class RuntimeDriver {
-public:
-  RuntimeDriver();
-  auto getDeviceList() -> std::vector<std::shared_ptr<Device>>& {
-    return mDevices;
-  };
+VulkanContext::VulkanContext(VkInstance instance) : mInstance(instance) {
+  uint32_t deviceCount;
+  vkEnumeratePhysicalDevices(mInstance, &deviceCount, nullptr);
 
-private:
-  std::vector<std::unique_ptr<DynamicLibrary>> mLibs;
-  std::vector<std::shared_ptr<Device>> mDevices;
-  std::vector<std::shared_ptr<Context>> mContexts;
-};
+  std::vector<VkPhysicalDevice> devices(deviceCount);
+  vkEnumeratePhysicalDevices(instance, &deviceCount, devices.data());
+
+  for (auto device : devices) {
+    mDevices.push_back(std::make_shared<VulkanDevice>(device));
+  }
+}
+std::vector<std::shared_ptr<Device>>& VulkanContext::getDevices() {
+  return mDevices;
+}
 } // namespace athena::backend::llvm

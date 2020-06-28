@@ -11,24 +11,21 @@
 // the License.
 //===----------------------------------------------------------------------===//
 
-#pragma once
-
 #include "DynamicLibrary.h"
 
-#include <athena/backend/llvm/runtime/Device.h>
-#include <athena/backend/llvm/runtime/Context.h>
+#include <dlfcn.h>
 
 namespace athena::backend::llvm {
-class RuntimeDriver {
-public:
-  RuntimeDriver();
-  auto getDeviceList() -> std::vector<std::shared_ptr<Device>>& {
-    return mDevices;
-  };
+std::unique_ptr<DynamicLibrary>
+DynamicLibrary::create(std::string_view libName) {
+  void* libHandle = dlopen(libName.data(), RTLD_LAZY | RTLD_LOCAL);
 
-private:
-  std::vector<std::unique_ptr<DynamicLibrary>> mLibs;
-  std::vector<std::shared_ptr<Device>> mDevices;
-  std::vector<std::shared_ptr<Context>> mContexts;
-};
+  return std::make_unique<DynamicLibrary>(libHandle);
+}
+
+void* DynamicLibrary::lookup(std::string_view symbolName) {
+  return dlsym(mHandle, symbolName.data());
+}
+
+DynamicLibrary::~DynamicLibrary() { dlclose(mHandle); }
 } // namespace athena::backend::llvm
