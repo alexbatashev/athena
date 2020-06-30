@@ -1,7 +1,7 @@
 #include "AthenaJIT.h"
 
-#include "AthenaGraph/AthenaGraphDialect.h"
-#include "AthenaRuntime/AthenaRuntimeDialect.h"
+#include "PolarGraph/PolarGraphDialect.h"
+#include "PolarRuntime/PolarRuntimeDialect.h"
 #include "Conversion/GraphToRuntimePass.h"
 #include "Conversion/RuntimeToLLVM.h"
 #include "Passes/Passes.h"
@@ -132,6 +132,7 @@ void AthenaJIT::compileModule() {
     }
   }
 #endif
+  mInternalModule->dump();
   auto res = mMlirPassManager.run(*mInternalModule);
   if (mlir::failed(res)) {
     // todo throw a real error.
