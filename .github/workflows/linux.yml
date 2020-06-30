@@ -50,6 +50,6 @@ jobs:
         run: |
           cd build_${{ matrix.build_type }}
           export LD_LIBRARY_PATH=${{ github.workspace }}/install_${{ matrix.build_type }}/lib:$LD_LIBRARY_PATH
-          ${{ github.workspace }}/install_${{ matrix.build_type }}/bin/lspolar
+          ./bin/lspolar
           ctest -VV -T Test
           cmake --build . --target check-polar-dialects
