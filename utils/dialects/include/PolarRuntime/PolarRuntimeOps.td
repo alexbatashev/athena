@@ -63,9 +63,6 @@ def LaunchFuncOp : PolarRuntime_Op<"launch_func"> {
                        PolarRuntime_EventType:$blocking_event,
                        FlatSymbolRefAttr:$kernel,
                        StrAttr:$native_kernel,
-                       I64ArrayAttr:$global_offset, 
-                       I64ArrayAttr:$global_size,
-                       I64ArrayAttr:$local_size,
                        Variadic<AnyType>:$operands);
   let results = (outs PolarRuntime_EventType:$out_event);
 
@@ -73,9 +70,7 @@ def LaunchFuncOp : PolarRuntime_Op<"launch_func"> {
   let builders = [
     OpBuilder<"OpBuilder& builder, OperationState& result, "
               "SymbolRefAttr kernel, "
-              "StringRef nativeKernel, ValueRange operands, "
-              "ArrayAttr globalOffset, ArrayAttr globalSize, "
-              "ArrayAttr localSize">
+              "StringRef nativeKernel, ValueRange operands">
   ];
 }
 

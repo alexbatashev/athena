@@ -29,10 +29,6 @@ struct LaunchCommand {
   const char* kernelName;
   uint64_t argsCount;
   ArgDesc* args;
-  uint64_t workDim;
-  uint64_t* globalOffset;
-  uint64_t* globalSize;
-  uint64_t* localSize;
   const char* nativeKernelName;
 };
 

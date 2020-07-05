@@ -2,7 +2,7 @@
 
 module {
   gpu.module @kernels {
-    // CHECK: gpu.func @add_fadd(%arg0: memref<2x2xf32>, %arg1: f32, %arg2: memref<2x2xf32>, %arg3: f32, %arg4: memref<2x2xf32>) kernel {
+    // CHECK: gpu.func @add_fadd(%arg0: memref<2x2xf32>, %arg1: f32, %arg2: memref<2x2xf32>, %arg3: f32, %arg4: memref<2x2xf32>) kernel attributes {global_size = [2, 2, 1], local_size = [0, 0, 0], spv.entry_point_abi = {local_size = dense<1> : vector<3xi32>}} {
     // CHECK-NEXT: %0 = "gpu.block_dim"() {dimension = "x"} : () -> index
     // CHECK-NEXT: %1 = "gpu.block_id"() {dimension = "x"} : () -> index
     // CHECK-NEXT: %2 = "gpu.thread_id"() {dimension = "x"} : () -> index
@@ -56,7 +56,7 @@ module {
     "polar_rt.lock"(%3, %0) {lock_type = "read"} : (!polar_rt.device, tensor<2x2xf32>) -> ()
     "polar_rt.lock"(%3, %1) {lock_type = "read"} : (!polar_rt.device, tensor<2x2xf32>) -> ()
     %4 = "polar_rt.null_event"() : () -> !polar_rt.event
-    // CHECK: %5 = "polar_rt.launch_func"(%3, %4, %1, %cst, %0, %cst, %2) {global_offset = [0, 0], global_size = [2, 2], kernel = @add_fadd, local_size = [0, 0, 0], native_kernel = "fadd"} : (!polar_rt.device, !polar_rt.event, tensor<2x2xf32>, f32, tensor<2x2xf32>, f32, tensor<2x2xf32>) -> !polar_rt.event
+    // CHECK: %5 = "polar_rt.launch_func"(%3, %4, %1, %cst, %0, %cst, %2) {kernel = @add_fadd, native_kernel = "fadd"} : (!polar_rt.device, !polar_rt.event, tensor<2x2xf32>, f32, tensor<2x2xf32>, f32, tensor<2x2xf32>) -> !polar_rt.event
     %5 = "polar_rt.launch"(%3, %4, %1, %cst, %0, %cst, %2) ( {
     ^bb0(%arg1: memref<2x2xf32>, %arg2: f32, %arg3: memref<2x2xf32>, %arg4: f32, %arg5: memref<2x2xf32>):  // no predecessors
       %6 = "gpu.block_dim"() {dimension = "x"} : () -> index
@@ -76,7 +76,7 @@ module {
       %20 = addf %18, %19 : f32
       store %20, %arg5[%10, %15] : memref<2x2xf32>
       "polar_rt.terminator"() : () -> ()
-    }) {global_offset = [0, 0], global_size = [2, 2], kernel_name = "fadd", local_size = [0, 0, 0]} : (!polar_rt.device, !polar_rt.event, tensor<2x2xf32>, f32, tensor<2x2xf32>, f32, tensor<2x2xf32>) -> !polar_rt.event
+    }) {global_offset = [0, 0], global_size = [2, 2, 1], kernel_name = "fadd", local_size = [0, 0, 0]} : (!polar_rt.device, !polar_rt.event, tensor<2x2xf32>, f32, tensor<2x2xf32>, f32, tensor<2x2xf32>) -> !polar_rt.event
     "polar_rt.release"(%3, %0) : (!polar_rt.device, tensor<2x2xf32>) -> ()
     "polar_rt.release"(%3, %1) : (!polar_rt.device, tensor<2x2xf32>) -> ()
     "polar_rt.release"(%3, %2) : (!polar_rt.device, tensor<2x2xf32>) -> ()

@@ -41,7 +41,7 @@ auto createRuntimeShapeInferencePass()
 auto createKernelMaterializerPass() -> std::unique_ptr<OperationPass<FuncOp>>;
 auto createKernelOutliningPass() -> std::unique_ptr<OperationPass<ModuleOp>>;
 auto createSaveKernelPass(SaveKernelCallback callback)
-    -> std::unique_ptr<OperationPass<gpu::GPUModuleOp>>;
+    -> std::unique_ptr<OperationPass<ModuleOp>>;
 } // namespace mlir
 
 #endif // ATHENA_PASSES_H

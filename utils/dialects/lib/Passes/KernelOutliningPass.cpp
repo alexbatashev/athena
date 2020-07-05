@@ -19,6 +19,7 @@
 #include "mlir/Dialect/Affine/IR/AffineOps.h"
 #include "mlir/Dialect/GPU/GPUDialect.h"
 #include "mlir/Dialect/SCF/SCF.h"
+#include "mlir/Dialect/SPIRV/TargetAndABI.h"
 #include "mlir/Dialect/StandardOps/IR/Ops.h"
 #include "mlir/IR/BlockAndValueMapping.h"
 #include "mlir/IR/Dominance.h"
@@ -57,6 +58,14 @@ protected:
                                                    kernelName.str(), funcType);
       kernel.setAttr(gpu::GPUDialect::getKernelFuncAttrName(),
                      builder.getUnitAttr());
+      // todo should this be real local size?
+      SmallVector<int, 3> localSize(3, 1);
+      // todo replace these literals with constants
+      kernel.setAttr("global_size", launchOp.getAttr("global_size"));
+      kernel.setAttr("local_size", launchOp.getAttr("local_size"));
+      kernel.setAttr(spirv::getEntryPointABIAttrName(),
+                     spirv::getEntryPointABIAttr(localSize,
+                                                 launchOp.getContext()));
       builder.setInsertionPointToStart(&kernel.body().front());
 
       BlockAndValueMapping mapping;
@@ -87,9 +96,7 @@ protected:
 
       auto launchFuncOp = builder.create<polar_rt::LaunchFuncOp>(
           launchOp.getLoc(), builder.getSymbolRefAttr(kernel),
-          launchOp.kernel_name(), launchOp.getOperands(),
-          launchOp.global_offset(), launchOp.global_size(),
-          launchOp.local_size());
+          launchOp.kernel_name(), launchOp.getOperands());
 
       launchOp.replaceAllUsesWith(launchFuncOp.getResult());
       launchOp.erase();

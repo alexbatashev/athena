@@ -25,6 +25,7 @@
 #include "mlir/Conversion/StandardToLLVM/ConvertStandardToLLVMPass.h"
 #include "mlir/Dialect/GPU/GPUDialect.h"
 #include "mlir/Dialect/LLVMIR/LLVMDialect.h"
+#include "mlir/Dialect/SPIRV/SPIRVOps.h"
 #include "mlir/Dialect/StandardOps/IR/Ops.h"
 #include "mlir/IR/Attributes.h"
 #include "mlir/IR/BlockAndValueMapping.h"
@@ -505,57 +506,6 @@ struct LaunchFuncOpLoweringPattern
     setStructFieldTo(launchCommand, getLaunchCommandType(llvmDialect),
                      argsArray, 2, rewriter, op->getLoc());
 
-    // Set workDim
-    auto workDim = createUInt64Constant(concreteOp.global_size().size(),
-                                        llvmDialect, rewriter, op->getLoc());
-    setStructFieldTo(launchCommand, getLaunchCommandType(llvmDialect), workDim,
-                     3, rewriter, op->getLoc());
-
-    // Set global size
-    auto globalOffset =
-        createArray(LLVM::LLVMType::getInt64Ty(llvmDialect),
-                    concreteOp.global_offset().size(), rewriter, op->getLoc());
-    for (auto s : llvm::enumerate(concreteOp.global_offset())) {
-      auto intAttr = s.value().cast<IntegerAttr>();
-
-      auto size = createUInt64Constant(*intAttr.getValue().getRawData(),
-                                       llvmDialect, rewriter, op->getLoc());
-
-      setArrayEltTo(globalOffset, size, s.index(), rewriter, op->getLoc());
-    }
-    setStructFieldTo(launchCommand, getLaunchCommandType(llvmDialect),
-                     globalOffset, 4, rewriter, op->getLoc());
-
-    // Set global size
-    auto globalSize =
-        createArray(LLVM::LLVMType::getInt64Ty(llvmDialect),
-                    concreteOp.global_size().size(), rewriter, op->getLoc());
-    for (auto s : llvm::enumerate(concreteOp.global_size())) {
-      auto intAttr = s.value().cast<IntegerAttr>();
-
-      auto size = createUInt64Constant(*intAttr.getValue().getRawData(),
-                                       llvmDialect, rewriter, op->getLoc());
-
-      setArrayEltTo(globalSize, size, s.index(), rewriter, op->getLoc());
-    }
-    setStructFieldTo(launchCommand, getLaunchCommandType(llvmDialect),
-                     globalSize, 5, rewriter, op->getLoc());
-
-    // Set local size
-    auto localSize =
-        createArray(LLVM::LLVMType::getInt64Ty(llvmDialect),
-                    concreteOp.local_size().size(), rewriter, op->getLoc());
-    for (auto s : llvm::enumerate(concreteOp.local_size())) {
-      auto intAttr = s.value().cast<IntegerAttr>();
-
-      auto size = createUInt64Constant(*intAttr.getValue().getRawData(),
-                                       llvmDialect, rewriter, op->getLoc());
-
-      setArrayEltTo(localSize, size, s.index(), rewriter, op->getLoc());
-    }
-    setStructFieldTo(launchCommand, getLaunchCommandType(llvmDialect),
-                     localSize, 6, rewriter, op->getLoc());
-
     // Set kernel name
     auto nativeKernelNameStr = concreteOp.native_kernel();
 
@@ -588,7 +538,7 @@ struct LaunchFuncOpLoweringPattern
         nkerNameGlobalAddr);
 
     setStructFieldTo(launchCommand, getLaunchCommandType(llvmDialect),
-                     nkerNamePtr, 7, rewriter, op->getLoc());
+                     nkerNamePtr, 3, rewriter, op->getLoc());
 
     auto launchFunc = module.lookupSymbol<LLVM::LLVMFuncOp>("ath_launch");
 
@@ -605,10 +555,9 @@ struct LaunchFuncOpLoweringPattern
   }
 };
 
-struct ModuleOpLoweringPattern
-    : PolarRuntimeConversionPattern<gpu::GPUModuleOp> {
-  using PolarRuntimeConversionPattern<
-      gpu::GPUModuleOp>::PolarRuntimeConversionPattern;
+template <typename ModuleTy>
+struct ModuleOpLoweringPattern : PolarRuntimeConversionPattern<ModuleTy> {
+  using PolarRuntimeConversionPattern<ModuleTy>::PolarRuntimeConversionPattern;
 
   LogicalResult
   matchAndRewrite(Operation* op, ArrayRef<Value> operands,
@@ -661,7 +610,8 @@ void populateRuntimeToLLVMConversionPatterns(
       NullEventOpLoweringPattern,
       DeviceSelectOpLoweringPattern,
       InvokeLoaderOpLoweringPattern,
-      ModuleOpLoweringPattern,
+      ModuleOpLoweringPattern<gpu::GPUModuleOp>,
+      ModuleOpLoweringPattern<spirv::ModuleOp>,
       LaunchFuncOpLoweringPattern
       // clang-format on
       >(typeConverter);
