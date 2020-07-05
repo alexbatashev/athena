@@ -85,7 +85,6 @@ if (Vulkan_FOUND)
 else()
   set(POLAR_HAS_VULKAN "false" CACHE STRING "" FORCE)
 endif()
-  set(POLAR_HAS_VULKAN "false" CACHE STRING "" FORCE)
 
 add_subdirectory(runtime/driver)
 
