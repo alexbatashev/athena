@@ -88,6 +88,7 @@ private:
   CUdevice mDevice;
   CUcontext mDeviceContext;
   CUstream mStream;
+  std::shared_ptr<ProgramDesc> mPtxModule;
   CUmodule mMainModule;
   std::string mDeviceName;
   std::shared_ptr<AllocatorLayerBase> mAllocator;

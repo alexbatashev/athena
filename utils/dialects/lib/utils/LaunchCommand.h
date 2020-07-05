@@ -39,6 +39,5 @@ getLaunchCommandType(mlir::LLVM::LLVMDialect* llvmDialect) {
   auto workDimTy = LLVM::LLVMType::getInt64Ty(llvmDialect);
   auto dimSizeTy = LLVM::LLVMType::getInt64Ty(llvmDialect).getPointerTo();
   return LLVM::LLVMType::getStructTy(kernelNameTy, argsCountTy, argsTy,
-                                     workDimTy, dimSizeTy, dimSizeTy, dimSizeTy,
                                      kernelNameTy);
 }

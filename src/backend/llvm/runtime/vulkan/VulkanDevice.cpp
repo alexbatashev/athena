@@ -70,4 +70,14 @@ VulkanDevice::VulkanDevice(VkPhysicalDevice device) : mPhysicalDevice(device) {
 }
 
 std::string VulkanDevice::getDeviceName() const { return mDeviceName; }
+
+void VulkanDevice::selectBinary(
+    std::vector<std::shared_ptr<ProgramDesc>>& programs) {
+  for (auto& prog : programs) {
+    if (prog->type == ProgramDesc::Type::SPIRV_SHADER) {
+      mSpvModule = prog;
+      break;
+    }
+  }
+}
 } // namespace athena::backend::llvm

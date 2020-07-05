@@ -55,11 +55,12 @@ public:
   void consumeEvent(Event*) override{};
 
   void
-  selectBinary(std::vector<std::shared_ptr<ProgramDesc>>& programs) override{};
+  selectBinary(std::vector<std::shared_ptr<ProgramDesc>>& programs) override;
 
 private:
   VkPhysicalDevice mPhysicalDevice;
   VkDevice mDevice;
+  std::shared_ptr<ProgramDesc> mSpvModule;
   std::string mDeviceName;
 };
 } // namespace athena::backend::llvm

@@ -69,9 +69,9 @@ protected:
         return;
       }
 
-      SmallVector<int64_t, 3> globalOffset;
-      SmallVector<int64_t, 3> globalSize;
-      SmallVector<int64_t, 3> localSize(3, 0);
+      SmallVector<int64_t, 3> globalOffset(3, 0);
+      SmallVector<int64_t, 3> globalSize(3, 1);
+      SmallVector<int64_t, 3> localSize(3, 1);
 
       for (auto& loop : llvm::enumerate(loopNest)) {
         auto lbOp = loop.value().lowerBound().getDefiningOp();
@@ -85,8 +85,8 @@ protected:
         int64_t lb = llvm::cast<ConstantIndexOp>(lbOp).getValue();
         int64_t ub = llvm::cast<ConstantIndexOp>(ubOp).getValue();
 
-        globalOffset.push_back(lb);
-        globalSize.push_back(ub - lb);
+        globalOffset[loop.index()] = lb;
+        globalSize[loop.index()] = ub - lb;
       }
 
       SmallVector<Type, 5> blockArgTypes;

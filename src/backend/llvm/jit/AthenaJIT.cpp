@@ -10,6 +10,8 @@
 
 #include "mlir/Dialect/GPU/GPUDialect.h"
 #include "mlir/Dialect/LLVMIR/LLVMDialect.h"
+#include "mlir/Dialect/SPIRV/SPIRVOps.h"
+#include "mlir/Dialect/SPIRV/TargetAndABI.h"
 #include "mlir/IR/Builders.h"
 #include "mlir/IR/Dialect.h"
 #include "mlir/IR/MLIRContext.h"
@@ -94,6 +96,16 @@ void AthenaJIT::addModule(const mlir::OwningModuleRef& ref) {
         builder.create<mlir::ModuleOp>(builder.getUnknownLoc()));
     builder.setInsertionPointToStart(mInternalModule->getBody());
     builder.create<mlir::gpu::GPUModuleOp>(builder.getUnknownLoc(), "kernels");
+    mInternalModule->setAttr(
+        mlir::gpu::GPUDialect::getContainerModuleAttrName(),
+        builder.getUnitAttr());
+    auto vercap = mlir::spirv::VerCapExtAttr::get(
+        mlir::spirv::Version::V_1_0, {mlir::spirv::Capability::Shader},
+        {mlir::spirv::Extension::SPV_KHR_storage_buffer_storage_class},
+        &mContext);
+    auto limits = mlir::spirv::getDefaultResourceLimits(&mContext);
+    auto targetEnv = mlir::spirv::TargetEnvAttr::get(vercap, limits);
+    mInternalModule->setAttr("spv.target_env", targetEnv);
   }
 
   builder.setInsertionPointToStart(mInternalModule->getBody());
@@ -139,14 +151,22 @@ void AthenaJIT::setupMlirPassManager() {
   funcOpt.addPass(mlir::createLegalizeRTForLoweringPass());
   funcOpt.addPass(mlir::createReleaseDependencyPass());
   mMlirPassManager.addPass(mlir::createKernelOutliningPass());
+  mMlirPassManager.addPass(mlir::createLegalizeStdOpsForSPIRVLoweringPass());
+  mMlirPassManager.addPass(
+      mlir::spirv::createDecorateSPIRVCompositeTypeLayoutPass());
+  mMlirPassManager.addPass(mlir::createConvertGPUToSPIRVPass());
   mMlirPassManager.addPass(mlir::createLowerToCFGPass());
+  auto& spvModulePM = mMlirPassManager.nest<mlir::spirv::ModuleOp>();
+  spvModulePM.addPass(mlir::spirv::createLowerABIAttributesPass());
+  spvModulePM.addPass(
+      mlir::spirv::createUpdateVersionCapabilityExtensionPass());
   auto& kernelPm = mMlirPassManager.nest<mlir::gpu::GPUModuleOp>();
   kernelPm.addPass(mlir::createStripDebugInfoPass());
   kernelPm.addPass(mlir::createLowerGpuOpsToNVVMOpsPass());
   kernelPm.addPass(createConvertGPUKernelToBlobPass(
-      mlir::translateModuleToNVVMIR, processPtx, "nvptx64-nvidia-cuda", "sm_53",
+      mlir::translateModuleToNVVMIR, processPtx, "nvptx64-nvidia-cuda", "sm_35",
       "+ptx60", "nvvm.ptx"));
-  kernelPm.addPass(mlir::createSaveKernelPass(saveKernelCallback));
+  mMlirPassManager.addPass(mlir::createSaveKernelPass(saveKernelCallback));
   mMlirPassManager.addPass(mlir::createDeployDefaultFunctionsPass());
   mMlirPassManager.addPass(mlir::createLowerRuntimeToLLVMPass());
 }
@@ -165,7 +185,6 @@ void AthenaJIT::compileModule() {
     // todo throw a real error.
     ::llvm::errs() << "JIT error\n";
   }
-  // mInternalModule->dump();
 
   auto llvmModule = mlir::LLVM::ModuleTranslation::translateModule(
       mInternalModule->getOperation());

@@ -40,9 +40,15 @@ std::string CudaDevice::getDeviceName() const { return mDeviceName; }
 void CudaDevice::selectBinary(
     std::vector<std::shared_ptr<ProgramDesc>>& programs) {
   cuCtxSetCurrent(mDeviceContext);
-  // todo real image selection logic
-  auto prg = programs[0];
 
+  for (auto& module : programs) {
+    if (module->type == ProgramDesc::Type::PTX) {
+      mPtxModule = module;
+      break;
+    }
+  }
+
+  // todo real image selection logic
   std::array<char, 4096> jitErrorBuffer = {0};
 
   CUlinkState linkState;
@@ -53,8 +59,8 @@ void CudaDevice::selectBinary(
                             reinterpret_cast<void*>(jitErrorBuffer.size())};
   check(cuLinkCreate(2, jitOptions, jitOptionsVals, &linkState));
   check(cuLinkAddData(linkState, CUjitInputType::CU_JIT_INPUT_PTX,
-                      static_cast<void*>(prg->data.data()), prg->data.size(),
-                      "kernels", 0, nullptr, nullptr));
+                      static_cast<void*>(mPtxModule->data.data()),
+                      mPtxModule->data.size(), "kernels", 0, nullptr, nullptr));
 }
 void CudaDevice::consumeEvent(Event* evt) {
   evt->wait();
@@ -88,16 +94,12 @@ Event* CudaDevice::launch(BackendAllocator& allocator, LaunchCommand& cmd,
     }
   }
 
-  size_t gridX = 1, gridY = 1, gridZ = 1, blockX = 1, blockY = 1, blockZ = 1;
-
-  gridX = cmd.globalSize[0];
-
-  if (cmd.workDim > 1) {
-    gridY = cmd.globalSize[1];
-  }
-  if (cmd.workDim > 2) {
-    gridZ = cmd.globalSize[2];
-  }
+  size_t gridX = mPtxModule->kernels[cmd.kernelName].globalX;
+  size_t gridY = mPtxModule->kernels[cmd.kernelName].globalY;
+  size_t gridZ = mPtxModule->kernels[cmd.kernelName].globalZ;
+  size_t blockX = mPtxModule->kernels[cmd.kernelName].localX;
+  size_t blockY = mPtxModule->kernels[cmd.kernelName].localY;
+  size_t blockZ = mPtxModule->kernels[cmd.kernelName].localZ;
 
   CUfunction func;
   check(cuModuleGetFunction(&func, mMainModule, cmd.kernelName));

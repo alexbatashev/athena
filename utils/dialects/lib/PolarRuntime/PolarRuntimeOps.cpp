@@ -78,16 +78,10 @@ void LaunchOp::build(OpBuilder& builder, OperationState& result,
 
 void LaunchFuncOp::build(OpBuilder& builder, OperationState& result,
                      SymbolRefAttr kernel,
-                     StringRef nativeKernel, ValueRange operands,
-                     ArrayAttr globalOffset,
-                     ArrayAttr globalSize,
-                     ArrayAttr localSize) {
+                     StringRef nativeKernel, ValueRange operands) {
   result.addOperands(operands);
   result.addAttribute("kernel", kernel);
   result.addAttribute("native_kernel", builder.getStringAttr(nativeKernel));
-  result.addAttribute("global_offset", globalOffset);
-  result.addAttribute("global_size", globalSize);
-  result.addAttribute("local_size", localSize);
   result.types.push_back(EventType::get(builder.getContext()));
 }
 
