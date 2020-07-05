@@ -15,7 +15,7 @@
 
 #include <string>
 
-#include <vulkan/vulkan.h>
+#include <volk.h>
 
 namespace athena::backend::llvm {
 class VulkanDevice : public Device {
