@@ -80,8 +80,6 @@ target_compile_features(athena
         cxx_defaulted_functions
         cxx_defaulted_move_initializers)
 
-add_subdirectory(bindings/python)
-
 # --- Library installation ---
 install(TARGETS athena EXPORT AthenaConfig
         RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
