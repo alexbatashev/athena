@@ -13,18 +13,12 @@
 
 #pragma once
 
-#include <athena/backend/llvm/runtime/Context.h>
-
 #include <vulkan/vulkan.h>
 
-namespace athena::backend::llvm {
-class VulkanContext : public Context {
-public:
-  VulkanContext(VkInstance instance);
-  std::vector<std::shared_ptr<Device>>& getDevices() override;
+#include <iostream>
 
-private:
-  std::vector<std::shared_ptr<Device>> mDevices;
-  VkInstance mInstance; 
-};
-} // namespace athena::backend::llvm
+inline void check(VkResult res) {
+  if (res != VK_SUCCESS) {
+    std::cerr << "Vulkan error " << res << '\n';
+  }
+}

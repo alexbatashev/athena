@@ -13,18 +13,33 @@
 
 #pragma once
 
-#include <athena/backend/llvm/runtime/Context.h>
+#include "VulkanDevice.h"
+#include <athena/backend/llvm/runtime/Event.h>
+#include <athena/backend/llvm/runtime/runtime_export.h>
 
 #include <vulkan/vulkan.h>
 
 namespace athena::backend::llvm {
-class VulkanContext : public Context {
+class ATH_RT_LLVM_EXPORT VulkanEvent final : public Event {
 public:
-  VulkanContext(VkInstance instance);
-  std::vector<std::shared_ptr<Device>>& getDevices() override;
+  VulkanEvent(VulkanDevice* device, VkFence fence);
+  ~VulkanEvent() override;
+
+  void wait() override;
+
+  void addCallback(std::function<void()> callback) override {
+    mCallbacks.push_back(std::move(callback));
+  }
+
+  auto getNativeEvent() -> VkFence& { return mFence; }
+
+  auto getDevice() -> Device* override;
 
 private:
-  std::vector<std::shared_ptr<Device>> mDevices;
-  VkInstance mInstance; 
+  VkFence mFence;
+  VulkanDevice* mDevice;
+  std::vector<std::function<void()>> mCallbacks;
 };
 } // namespace athena::backend::llvm
+
+

@@ -11,20 +11,26 @@
 // the License.
 //===----------------------------------------------------------------------===//
 
-#pragma once
+#include "VulkanEvent.h"
+#include "utils.hpp"
 
-#include <athena/backend/llvm/runtime/Context.h>
-
-#include <vulkan/vulkan.h>
+#include <utility>
 
 namespace athena::backend::llvm {
-class VulkanContext : public Context {
-public:
-  VulkanContext(VkInstance instance);
-  std::vector<std::shared_ptr<Device>>& getDevices() override;
+VulkanEvent::VulkanEvent(VulkanDevice* device, VkFence fence)
+    : mFence(fence), mDevice(device) {}
 
-private:
-  std::vector<std::shared_ptr<Device>> mDevices;
-  VkInstance mInstance; 
-};
+void VulkanEvent::wait() {
+  // todo is thread safety required here?
+  check(vkWaitForFences(mDevice->getVirtualDevice(), 1, &mFence, VK_TRUE,
+                        10000000000000));
+  for (auto& cb : mCallbacks) {
+    cb();
+  }
+  mCallbacks.clear();
+}
+auto VulkanEvent::getDevice() -> Device* { return mDevice; };
+VulkanEvent::~VulkanEvent() {
+  vkDestroyFence(mDevice->getVirtualDevice(), mFence, nullptr);
+}
 } // namespace athena::backend::llvm
