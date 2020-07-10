@@ -23,16 +23,20 @@
 
 namespace athena::backend::llvm {
 template <typename T> class BackendAccessor final : public core::Accessor<T> {
+protected:
+  using core::Accessor<T>::linearIndex;
+
 public:
   BackendAccessor(T* data, size_t dims, uint64_t* shape)
       : mData(data), mShape(shape, shape + dims){};
+
   auto operator()(std::initializer_list<size_t> idx) -> T& override {
-    return mData[linearIndex(idx)];
+    return mData[linearIndex(idx, mShape)];
   }
 
   auto operator()(size_t idx) -> T& override { return mData[idx]; }
 
-  auto getShape() -> std::vector<size_t>& override { return mShape; }
+  auto getShape() -> const std::vector<size_t>& override { return mShape; }
 
   auto getRawPtr() -> T* override { return mData; }
 

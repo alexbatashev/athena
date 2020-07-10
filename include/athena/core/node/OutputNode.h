@@ -15,7 +15,9 @@
 #define ATHENA_OUTPUTNODE_H
 
 #include <athena/core/core_export.h>
+#include <athena/core/loader/internal/TensorAllocator.h>
 #include <athena/core/node/AbstractNode.h>
+#include <athena/core/node/OutputNodeAccessor.h>
 #include <athena/core/node/internal/OutputNodeInternal.h>
 
 namespace athena::core {
@@ -29,6 +31,14 @@ class OutputNodeInternal;
 class ATH_CORE_EXPORT OutputNode : public AbstractNode {
 public:
   using InternalType = internal::OutputNodeInternal;
+
+  template <typename T>
+  OutputNodeAccessor<T> getAccess(internal::TensorAllocator& allocator) {
+    auto tensorIdx =
+        mContext->getRef<InternalType>(mPublicIndex).getTensorIndex();
+    auto& tensorRef = mContext->getRef<internal::TensorInternal>(tensorIdx);
+    return OutputNodeAccessor<T>(allocator, tensorRef);
+  }
 };
 } // namespace athena::core
 
