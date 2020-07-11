@@ -21,28 +21,33 @@ protected:
 public:
   OutputNodeAccessor(internal::TensorAllocator& allocator,
                      internal::TensorInternal& tensor)
-      : mAllocator(allocator), mTensor(tensor) {
-    mAllocator.lock(mTensor, internal::LockType::READ);
-    mData = static_cast<T*>(mAllocator.get(mTensor));
+      : mAllocator(&allocator), mTensor(&tensor) {
+    mAllocator->lock(*mTensor, internal::LockType::READ);
+    mData = static_cast<T*>(mAllocator->get(*mTensor));
   }
 
-  ~OutputNodeAccessor() { mAllocator.release(mTensor); }
+  OutputNodeAccessor(const OutputNodeAccessor<T>&) = delete;
+  auto operator=(const OutputNodeAccessor<T>) = delete;
+
+  ~OutputNodeAccessor() { mAllocator->release(*mTensor); }
 
   auto operator()(std::initializer_list<size_t> idx) -> T& override {
-    return mData[linearIndex(idx, mTensor.getShape().getShape())];
+    return mData[linearIndex(idx, mTensor->getShape().getShape())];
   }
 
   auto operator()(size_t idx) -> T& override { return mData[idx]; }
 
   auto getShape() -> const std::vector<size_t>& override {
-    return mTensor.getShape().getShape();
+    return mTensor->getShape().getShape();
   }
 
   auto getRawPtr() -> T* override { return mData; }
 
+  void release() { mAllocator->release(*mTensor); }
+
 private:
-  internal::TensorAllocator& mAllocator;
-  internal::TensorInternal& mTensor;
+  internal::TensorAllocator* mAllocator;
+  internal::TensorInternal* mTensor;
   T* mData;
 };
 } // namespace athena::core

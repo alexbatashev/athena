@@ -43,20 +43,6 @@ public:
 private:
   T* mData;
   std::vector<size_t> mShape;
-
-  auto linearIndex(std::initializer_list<size_t> idx) -> size_t {
-    std::vector<size_t> unwrappedIdx{idx};
-
-    size_t index = 0;
-    size_t mul = 1;
-
-    for (size_t i = 0; i != mShape.size(); ++i) {
-      index += unwrappedIdx[i] * mul;
-      mul *= mShape[i];
-    }
-
-    return index;
-  }
 };
 } // namespace athena::backend::llvm
 

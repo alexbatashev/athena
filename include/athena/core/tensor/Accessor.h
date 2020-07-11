@@ -31,7 +31,7 @@ public:
 
 protected:
   auto linearIndex(std::initializer_list<size_t> idx,
-                   const std::vector<uint64_t>& shape) -> size_t {
+                   const std::vector<size_t>& shape) -> size_t {
     std::vector<size_t> unwrappedIdx{idx};
 
     size_t index = 0;
