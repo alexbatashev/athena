@@ -33,8 +33,6 @@ public:
                           TensorShape shape);
   ~TensorInternal() override = default;
 
-  // TensorInternal operator[](size_t index) const;
-
   [[nodiscard]] DataType getDataType() const;
   [[nodiscard]] ShapeView getShapeView() const;
   [[nodiscard]] ShapeView getSubShapeView(size_t offset = 1) const;
