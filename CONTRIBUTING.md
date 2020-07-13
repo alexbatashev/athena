@@ -1,6 +1,7 @@
 # How to contribute
 
-Everyone is welcome to contribute to Athena project. There are several ways to get involved.
+Everyone is welcome to contribute to PolarAI project. There are several ways to 
+get involved.
 
 ## Community Guidelines
 
@@ -9,22 +10,36 @@ to foster an open and welcoming environment.
 
 ## Issue tracking and reporting
 
-To report a bug, please use [Github Issues](https://github.com/athenaml/athena/issues).
+To report a bug, please use [Github Issues](https://github.com/PolarAI/polarai-framework/issues).
 
-If you want to contribute to the project, start looking for issues with `good first issue`
-label. If you decide to start working on issue, leave a comment, so that other
-community members are aware of work in progress.
+If you want to contribute to the project, start looking for issues with 
+`good first issue` label. If you decide to start working on issue, leave a 
+comment, so that other community members are aware of work in progress.
 
 ## Contributing code
 
 ### Code style
 
-Athena mostly follows the [LLVM style](https://llvm.org/docs/CodingStandards.html) guide with
-a few exceptions:
+PolarAI is written in multiple programming languages. Below is a brief overview
+of what they are:
+
+| Language      | Source extension | Header extension | Code style                 |
+|---------------|------------------|------------------|----------------------------|
+| ANSI C        | `.c`             | `.h`             | [LLVM] with exceptions (1) |
+| C++ 17        | `.cpp`           | `.hpp`           | [LLVM] with exceptions (1) |
+| Objective-C++ | `.mm`            | `.hh`            | [LLVM] with exceptions (1) |
+
+#### (1) Exceptions to the LLVM Code style
+
+PolarAI mostly follows the [LLVM style](https://llvm.org/docs/CodingStandards.html) 
+guide with a few exceptions:
 
 * Adopts [camelBack](https://llvm.org/docs/Proposals/VariableNames.html).
 * `*` and `&` are "attached" to the type (e.g `int* a`).
-* Outside the LLVM backend standard types, algorithms and containers are used. (Do not re-invent the wheel).
+* Outside the LLVM backend standard types, algorithms and containers are used. 
+  (Do not re-invent the wheel).
+* C++ header files use `.hpp` extension.
+* Prefer `#pragma once` as include guard.
 
 There's a `.clang-format` configuration file to help you properly format your sources.
 Please, always apply clang-format to *your patch* (do not reformat code outside scope of
@@ -39,15 +54,16 @@ following some of LLVM guidelines, match your code style to the style used in cu
 
 ### Commit messages
 
-Athena follows [Conventional commits](https://www.conventionalcommits.org/) guidelines.
+PolarAI follows [Conventional commits](https://www.conventionalcommits.org/) 
+guidelines.
 
 #### Commit message format
 
-Each commit message consists of a **header**, a **body** and a **footer**.  The header has a special
-format that includes a **type**, a **scope** and a **subject**:
+Each commit message consists of a **header**, a **body** and a **footer**. 
+The header has a special format that includes a **type** and a **subject**:
 
 ```
-<type>(<scope>): <subject>
+<type>: <subject>
 <BLANK LINE>
 <body>
 <BLANK LINE>
@@ -63,9 +79,10 @@ The footer should contain a [closing reference to an issue](https://help.github.
 
 #### Revert
 
-If the commit reverts a previous commit, it should begin with `revert: `, followed by the header of the 
-reverted commit. In the body it should say: `This reverts commit <hash>.`, where the hash is the SHA of the 
-commit being reverted.
+If the commit reverts a previous commit, it should begin with `revert: `, 
+followed by the header of the reverted commit. In the body it should say: 
+`This reverts commit <hash>.`, where the hash is the SHA of the  commit being 
+reverted.
 
 #### Type
 
@@ -78,20 +95,9 @@ Must be one of the following:
 * **fix**: A bug fix
 * **perf**: A code change that improves performance
 * **refactor**: A code change that neither fixes a bug nor adds a feature
-* **style**: Changes that do not affect the meaning of the code (white-space, formatting, missing semi-colons, etc)
+* **style**: Changes that do not affect the meaning of the code (white-space, 
+  formatting, missing semi-colons, etc)
 * **test**: Adding missing tests or correcting existing tests
-
-#### Scope
-
-The scope should be the name of the component affected. Examples are listed below:
-
-* **core** - Athena core runtime library (`src/core`).
-* **ops** - Operations (`src/ops`).
-* **loaders** - Loaders (`src/loaders`).
-* **llvm_backend** - LLVM backend (`src/backend/llvm`).
-* **cpu_rt** - CPU runtime (`src/backend/llvm/runtime/cpu`).
-* **rt_driver** - Runtime driver (`src/backend/llvm/runtime/driver`).
-* **mlir_graph** - MLIR-based Graph dialect (`src/backend/llvm/mlir`).
 
 #### Subject
 
@@ -112,3 +118,22 @@ The footer should contain any information about **Breaking Changes** and is also
 reference GitHub issues that this commit **Closes**.
 
 **Breaking Changes** should start with the word `BREAKING CHANGE:` with a space or two newlines. The rest of the commit message is then used for this.
+
+## Examples of source headers
+
+### C/C++/Objective-C++
+```
+//===----------------------------------------------------------------------===//
+// Copyright (c) 2020 PolarAI. All rights reserved.
+//
+// Licensed under MIT license.
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+// WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+// License for the specific language governing permissions and limitations under
+// the License.
+//===----------------------------------------------------------------------===//
+```
+
+[LLVM]: https://llvm.org/docs/CodingStandards.html

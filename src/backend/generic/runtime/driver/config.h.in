@@ -1,0 +1,43 @@
+#pragma once
+
+#include <vector>
+#include <string>
+
+constexpr static auto HasOpenCL = @POLAR_HAS_OPENCL@;
+constexpr static auto HasSYCL = @POLAR_HAS_SYCL@;
+constexpr static auto HasCUDA = @POLAR_HAS_CUDA@;
+constexpr static auto HasHIP = @POLAR_HAS_HIP@;
+constexpr static auto HasVulkan = @POLAR_HAS_VULKAN@;
+constexpr static auto HasMetal = @POLAR_HAS_METAL@;
+
+inline std::vector<std::string> getListOfLibraries() {
+  std::vector<std::string> libraries;
+
+  if constexpr (HasSYCL) {
+    // fixme find a better way to extract libnames
+    libraries.emplace_back("libpolar_rt_sycl.so");
+  }
+  if constexpr (HasCUDA) {
+    // fixme find a better way to extract libnames
+    libraries.emplace_back("libpolar_rt_cuda.so");
+  }
+  if constexpr (HasHIP) {
+    // fixme find a better way to extract libnames
+    libraries.emplace_back("libpolar_rt_hip.so");
+  }
+  if constexpr (HasVulkan) {
+    // fixme find a better way to extract libnames
+    libraries.emplace_back("libpolar_rt_vulkan.so");
+  }
+  if constexpr (HasMetal) {
+    // fixme find a better way to extract libnames
+    libraries.emplace_back("libpolar_rt_metal.dylib");
+  }
+  // temporarily disable OpenCL
+  if constexpr (/*HasOpenCL*/ false) {
+    // fixme find a better way to extract libnames
+    libraries.emplace_back("libpolar_rt_opencl.so");
+  }
+
+  return libraries;
+}    
