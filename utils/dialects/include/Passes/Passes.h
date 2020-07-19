@@ -16,6 +16,9 @@
 #include <functional>
 #include <memory>
 
+namespace llvm {
+class Module;
+}
 namespace polarai::backend::generic {
 struct ProgramDesc;
 }
@@ -29,6 +32,8 @@ class GPUModuleOp;
 
 using SaveKernelCallback =
     std::function<void(polarai::backend::generic::ProgramDesc)>;
+using OptimizeModuleCallback =
+    std::function<void(std::unique_ptr<llvm::Module>&)>;
 
 std::unique_ptr<OperationPass<ModuleOp>> createDeployDefaultFunctionsPass();
 std::unique_ptr<OperationPass<ModuleOp>> createGraphRelationDestructorPass();
@@ -41,6 +46,8 @@ auto createKernelMaterializerPass() -> std::unique_ptr<OperationPass<FuncOp>>;
 auto createKernelOutliningPass() -> std::unique_ptr<OperationPass<ModuleOp>>;
 auto createSaveKernelPass(SaveKernelCallback callback)
     -> std::unique_ptr<OperationPass<ModuleOp>>;
+auto createProduceNVVMModulePass(OptimizeModuleCallback callback)
+    -> std::unique_ptr<OperationPass<gpu::GPUModuleOp>>;
 } // namespace mlir
 
 #endif // ATHENA_PASSES_H

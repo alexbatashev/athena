@@ -175,9 +175,12 @@ void PolarJIT::setupMlirPassManager() {
   auto& kernelPm = mMlirPassManager.nest<mlir::gpu::GPUModuleOp>();
   kernelPm.addPass(mlir::createStripDebugInfoPass());
   kernelPm.addPass(mlir::createLowerGpuOpsToNVVMOpsPass());
-  kernelPm.addPass(createConvertGPUKernelToBlobPass(
-      mlir::translateModuleToNVVMIR, processPtx, "nvptx64-nvidia-cuda", "sm_35",
-      "+ptx60", "nvvm.ptx"));
+  kernelPm.addPass(
+      mlir::createProduceNVVMModulePass([](std::unique_ptr<llvm::Module>&) {}));
+  // kernelPm.addPass(createConvertGPUKernelToBlobPass(
+  //     mlir::translateModuleToNVVMIR, processPtx, "nvptx64-nvidia-cuda",
+  //     "sm_35",
+  //     "+ptx60", "nvvm.ptx"));
   mMlirPassManager.addPass(mlir::createSaveKernelPass(saveKernelCallback));
   mMlirPassManager.addPass(mlir::createDeployDefaultFunctionsPass());
   mMlirPassManager.addPass(mlir::createLowerRuntimeToLLVMPass());
@@ -221,4 +224,4 @@ void PolarJIT::registerDevice(std::shared_ptr<Device> dev) {
   mRegisteredDevices.push_back(std::move(dev));
 }
 void PolarJIT::resetDevices() { mRegisteredDevices.clear(); }
-} // namespace polarai::backend::llvm
+} // namespace polarai::backend::generic

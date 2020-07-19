@@ -7,9 +7,13 @@ add_polar_library(polar_rt_cuda SHARED
         CudaEvent.cpp
   )
 target_include_directories(polar_rt_cuda PUBLIC 
-                           $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>)
+                           $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+                           PRIVATE
+                           ${CUDAToolkit_LIBRARY_ROOT}/nvvm/include)
+target_link_directories(polar_rt_cuda PRIVATE
+                        ${CUDAToolkit_LIBRARY_ROOT}/nvvm/lib64)
 
-target_link_libraries(polar_rt_cuda PRIVATE CUDA::cuda_driver PolarAI::utils)
+target_link_libraries(polar_rt_cuda PRIVATE CUDA::cuda_driver PolarAI::utils nvvm)
 
 set_property(GLOBAL APPEND PROPERTY POLAR_AVAILABLE_RUNTIMES polar_rt_cuda)
 

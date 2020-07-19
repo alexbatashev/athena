@@ -63,7 +63,7 @@ protected:
     };
 
     module.walk([this, fillKernels](gpu::GPUModuleOp module) {
-      auto ptx = module.getAttrOfType<StringAttr>("nvvm.ptx");
+      auto ptx = module.getAttrOfType<StringAttr>("nvvm");
 
       polarai::backend::generic::ProgramDesc desc;
       desc.type = polarai::backend::generic::ProgramDesc::Type::PTX;

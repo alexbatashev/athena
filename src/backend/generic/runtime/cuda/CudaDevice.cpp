@@ -20,7 +20,45 @@
 
 #include <array>
 #include <fstream>
+#include <nvvm.h>
 #include <vector>
+
+static auto compileNVVM(const std::vector<char>& nvvmIr) -> std::vector<char> {
+  nvvmProgram compileUnit;
+  nvvmResult res;
+
+  nvvmCreateProgram(&compileUnit);
+  nvvmAddModuleToProgram(compileUnit, nvvmIr.data(), nvvmIr.size(),
+                         "LLVMDialectModule");
+
+  const char* options[] = {"-arch=compute_35"};
+
+  res = nvvmCompileProgram(compileUnit, 1, options);
+  if (res != NVVM_SUCCESS) {
+    // todo needs proper error handling
+    std::cerr << res << '\n';
+    std::cerr << nvvmIr.data() << '\n';
+    size_t logSize;
+    nvvmGetProgramLogSize(compileUnit, &logSize);
+    char* msg = new char[logSize];
+    nvvmGetProgramLog(compileUnit, msg);
+    std::cerr << msg << "\n";
+    delete[] msg;
+    std::terminate();
+  }
+
+  size_t ptxSize = 0;
+  nvvmGetCompiledResultSize(compileUnit, &ptxSize);
+
+  std::vector<char> ptx;
+  ptx.reserve(ptxSize);
+
+  nvvmGetCompiledResult(compileUnit, ptx.data());
+
+  nvvmDestroyProgram(&compileUnit);
+
+  return ptx;
+}
 
 namespace polarai::backend::generic {
 CudaDevice::CudaDevice(CUdevice device) : mDevice(device) {
@@ -47,6 +85,8 @@ void CudaDevice::selectBinary(
     }
   }
 
+  auto ptx = compileNVVM(mPtxModule->data);
+
   // todo real image selection logic
   std::array<char, 4096> jitErrorBuffer = {0};
 
@@ -58,8 +98,8 @@ void CudaDevice::selectBinary(
                             reinterpret_cast<void*>(jitErrorBuffer.size())};
   check(cuLinkCreate(2, jitOptions, jitOptionsVals, &linkState));
   check(cuLinkAddData(linkState, CUjitInputType::CU_JIT_INPUT_PTX,
-                      static_cast<void*>(mPtxModule->data.data()),
-                      mPtxModule->data.size(), "kernels", 0, nullptr, nullptr));
+                      static_cast<void*>(ptx.data()), ptx.size(), "kernels", 0,
+                      nullptr, nullptr));
 }
 void CudaDevice::consumeEvent(Event* evt) {
   evt->wait();

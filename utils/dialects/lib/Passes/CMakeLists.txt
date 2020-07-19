@@ -8,6 +8,7 @@ add_mlir_conversion_library(MLIRPolarPasses
         KernelMaterializerPass.cpp
         KernelOutliningPass.cpp
         SaveKernelPass.cpp
+        ProduceNVVMPass.cpp
 
         ADDITIONAL_HEADER_DIRS
         ${PROJECT_SOURCE_DIR}/include/
