@@ -11,6 +11,7 @@
 //===----------------------------------------------------------------------===//
 
 #include "../utils/utils.hpp"
+#include "api.hpp"
 
 #include <polarai/backend/generic/BackendAllocator.hpp>
 #include <polarai/backend/generic/runtime/BackendAccessor.hpp>
@@ -19,6 +20,10 @@
 #include <polarai/backend/generic/runtime/GraphHandle.hpp>
 #include <polarai/backend/generic/runtime/LaunchCommand.h>
 #include <polarai/backend/generic/runtime/TensorInfo.h>
+
+#ifdef BUILD_DLL
+#undef BUILD_DLL
+#endif
 #include <polarai/core/loader/internal/AbstractLoaderInternal.hpp>
 #include <polarai/utils/error/FatalError.hpp>
 #include <polar_rt_support_export.h>
@@ -29,7 +34,7 @@ using namespace polarai::backend::generic;
 
 extern "C" {
 
-POLAR_RT_SUPPORT_EXPORT void ath_allocate(GraphHandle* handle, Device& device,
+void ath_allocate(GraphHandle* handle, Device& device,
                                           TensorInfo* tensor) {
   auto record = tensorInfoToRecord(tensor);
   if (device.getDeviceName() == "host") {
@@ -39,7 +44,7 @@ POLAR_RT_SUPPORT_EXPORT void ath_allocate(GraphHandle* handle, Device& device,
   }
 }
 
-POLAR_RT_SUPPORT_EXPORT void ath_release(GraphHandle* handle, Device& device,
+void ath_release(GraphHandle* handle, Device& device,
                                          TensorInfo* tensor,
                                          Event* blockingEvt) {
   auto record = tensorInfoToRecord(tensor);
@@ -54,7 +59,7 @@ POLAR_RT_SUPPORT_EXPORT void ath_release(GraphHandle* handle, Device& device,
   }
 }
 
-POLAR_RT_SUPPORT_EXPORT void ath_lock(GraphHandle* handle, Device& device,
+void ath_lock(GraphHandle* handle, Device& device,
                                       TensorInfo* tensor,
                                       polarai::core::internal::LockType type) {
   auto record = tensorInfoToRecord(tensor);
@@ -65,7 +70,7 @@ POLAR_RT_SUPPORT_EXPORT void ath_lock(GraphHandle* handle, Device& device,
   }
 }
 
-POLAR_RT_SUPPORT_EXPORT Device* ath_device_select(GraphHandle* handle,
+Device* ath_device_select(GraphHandle* handle,
                                                   uint64_t nodeId) {
   if (handle->isHostNode.count(nodeId)) {
     return handle->devices.back().get();
@@ -73,7 +78,7 @@ POLAR_RT_SUPPORT_EXPORT Device* ath_device_select(GraphHandle* handle,
   return handle->devices.front().get(); // TODO real device selection logic.
 }
 
-POLAR_RT_SUPPORT_EXPORT void ath_barrier(uint32_t count, Event** events) {
+void ath_barrier(uint32_t count, Event** events) {
   for (int i = 0; i < count; i++) {
     if (events[i]) {
       events[i]->wait();
@@ -81,13 +86,13 @@ POLAR_RT_SUPPORT_EXPORT void ath_barrier(uint32_t count, Event** events) {
   }
 }
 
-POLAR_RT_SUPPORT_EXPORT Event* ath_launch(GraphHandle* handle, Device* device,
+Event* ath_launch(GraphHandle* handle, Device* device,
                                           Event* event,
                                           LaunchCommand& command) {
   return device->launch(*handle->allocator, command, event);
 }
 
-POLAR_RT_SUPPORT_EXPORT void ath_load(GraphHandle* handle, uint64_t nodeId,
+void ath_load(GraphHandle* handle, uint64_t nodeId,
                                       TensorInfo* tensor) {
   auto* loader = handle->mLoaders[nodeId];
   auto record = tensorInfoToRecord(tensor);

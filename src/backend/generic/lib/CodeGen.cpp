@@ -169,7 +169,7 @@ void populateCodeGenPatterns(polarai::core::internal::Generator& generator,
         }
 
         auto node = builder.create<mlir::polar_graph::NodeOp>(
-            builder.getUnknownLoc(), name, nodeType, nodeId, clusterId);
+            builder.getUnknownLoc(), llvm::StringRef(name.data(), name.size()), nodeType, nodeId, clusterId);
         mlir::OpBuilder::InsertionGuard guard{builder};
         builder.setInsertionPointToStart(&node.getBody().front());
 
@@ -187,7 +187,7 @@ void populateCodeGenPatterns(polarai::core::internal::Generator& generator,
       [&](std::string_view name, size_t graphId) {
         // fixme set graph ID
         auto graph = builder.create<mlir::polar_graph::GraphOp>(
-            builder.getUnknownLoc(), name);
+            builder.getUnknownLoc(), llvm::StringRef(name.data(), name.size()));
         return GenGraph{std::make_shared<MlirGraphImpl>(graph)};
       };
   generator.registerGraphFunctor(graphFunctor);
@@ -331,6 +331,17 @@ void populateCodeGenPatterns(polarai::core::internal::Generator& generator,
   };
   generator.registerFunctor<builtin::Add>(addFunctor);
 
+  builtin_functor_t<builtin::Conv2D> conv2dFunctor =
+      [&](GenValue input, GenValue kernel, GenValue out) {
+        auto inputVal = input.value<MlirValueImpl>().value;
+        auto kernelVal = kernel.value<MlirValueImpl>().value;
+        auto outVal = out.value<MlirValueImpl>().value;
+
+        builder.create<mlir::polar_graph::Conv2DOp>(
+            builder.getUnknownLoc(), inputVal, kernelVal, outVal);
+      };
+  generator.registerFunctor<builtin::Conv2D>(conv2dFunctor);
+
   builtin_functor_t<builtin::Copy> copyFunctor = [&](GenValue input,
                                                      GenValue out) {
     auto inputVal = input.value<MlirValueImpl>().value;
@@ -398,6 +409,28 @@ void populateCodeGenPatterns(polarai::core::internal::Generator& generator,
       };
   generator.registerFunctor<builtin::MulConcat>(mulConcatFunctor);
 
+  builtin_functor_t<builtin::Pool2D> pool2dFunctor =
+      [&](GenValue input, GenValue out, const std::vector<int64_t>& sizes,
+          const std::vector<int64_t>& strides) {
+        auto inputVal = input.value<MlirValueImpl>().value;
+        auto outVal = out.value<MlirValueImpl>().value;
+
+        builder.create<mlir::polar_graph::Pool2DOp>(
+            builder.getUnknownLoc(), inputVal, outVal,
+            mlir::polar_graph::PoolPredicate::max, sizes, strides);
+      };
+  generator.registerFunctor<builtin::Pool2D>(pool2dFunctor);
+
+  builtin_functor_t<builtin::ReLU> reluFunctor = [&](GenValue input,
+                                                     GenValue out) {
+    auto inputVal = input.value<MlirValueImpl>().value;
+    auto outVal = out.value<MlirValueImpl>().value;
+
+    builder.create<mlir::polar_graph::ReLUOp>(builder.getUnknownLoc(), inputVal,
+                                              outVal);
+  };
+  generator.registerFunctor<builtin::ReLU>(reluFunctor);
+
   builtin_functor_t<builtin::Sigmoid> sigmoidFunctor = [&](GenValue input,
                                                            GenValue out) {
     auto inputVal = input.value<MlirValueImpl>().value;
@@ -407,6 +440,16 @@ void populateCodeGenPatterns(polarai::core::internal::Generator& generator,
                                                  inputVal, outVal);
   };
   generator.registerFunctor<builtin::Sigmoid>(sigmoidFunctor);
+
+  builtin_functor_t<builtin::Softmax> softmaxFunctor = [&](GenValue input,
+                                                           GenValue out) {
+    auto inputVal = input.value<MlirValueImpl>().value;
+    auto outVal = out.value<MlirValueImpl>().value;
+
+    builder.create<mlir::polar_graph::SoftmaxOp>(builder.getUnknownLoc(),
+                                                 inputVal, outVal);
+  };
+  generator.registerFunctor<builtin::Softmax>(softmaxFunctor);
 
   builtin_functor_t<builtin::Fill> fillFunctor = [&](GenValue pattern,
                                                      GenValue out) {

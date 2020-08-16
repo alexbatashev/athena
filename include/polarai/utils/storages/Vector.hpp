@@ -10,24 +10,12 @@
 // the License.
 //===----------------------------------------------------------------------===//
 
-#include <polarai/utils/allocator/Allocator.hpp>
+#pragma once
 
-#include <utility>
+#include <vector>
 
 namespace polarai::utils {
-Allocator::Allocator(SharedPtr<AbstractMemoryResource> memoryResource)
-    : mMemoryResource(std::move(memoryResource)) {}
-
-byte* Allocator::allocateBytes(size_t size, size_t alignment) {
-  return mMemoryResource->allocate(size, alignment);
-}
-
-void Allocator::deallocateBytes(const byte* data, size_t size,
-                                size_t alignment) {
-  mMemoryResource->deallocate(data, size, alignment);
-}
-
-SharedPtr<AbstractMemoryResource>& Allocator::getMemoryResource() {
-  return mMemoryResource;
-}
+// todo implement ABI-stable Vector
+template <typename T> using Vector = std::vector<T>;
 } // namespace polarai::utils
+

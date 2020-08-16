@@ -27,7 +27,8 @@ message(STATUS "Using LLVMConfig.cmake in: ${LLVM_DIR}")
 add_subdirectory(jit)
 
 add_polar_library(polar_backend_generic SHARED
-        GenericExecutor.cpp
+        Executor.cpp
+        ExecutorImpl.cpp
         GraphPartitionPlanner.cpp
         allocators/LayerAllocator.cpp
         CodeGen.cpp
@@ -63,8 +64,8 @@ target_link_libraries(polar_backend_generic PRIVATE
         PolarAI::generic_backend_support
         PolarAI::generic_backend_driver
         PUBLIC
-        PolarAI::utils
         PolarAI::framework
+        PolarAI::utils
         )
 target_include_directories(polar_backend_generic PRIVATE
         ${PROJECT_SOURCE_DIR}/utils/dialects/include

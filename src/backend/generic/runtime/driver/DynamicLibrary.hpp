@@ -29,11 +29,8 @@ public:
 
   ~DynamicLibrary();
 
-private:
-  friend auto std::make_unique<DynamicLibrary>(void*&)
-      -> std::unique_ptr<DynamicLibrary>;
   DynamicLibrary(void* handle) : mHandle(handle){};
-
+private:
   void* mHandle;
 };
 } // namespace polarai::backend::llvm
